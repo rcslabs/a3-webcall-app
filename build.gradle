@@ -1,12 +1,5 @@
 
-group = 'com.rcslabs'
-version = '3.1.0-SNAPSHOT'
-buildDir = 'target'
-
-apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
 
 mainClassName = "WebcallApp"
 
@@ -20,55 +13,27 @@ dependencies {
     compile 'redis.clients:jedis:2.2.1'
     compile 'com.google.code.gson:gson:2.2.1'
     compile 'com.rcslabs:nist-jaxb:1.0'
-    compile 'com.rcslabs:rcl-api:'+version
+    //compile 'com.rcslabs:rcl-api:'+version
+    compile project(':libraries:java:rcl-api')
     // compile 'org.slf4j:slf4j-simple:1.6.4'
     compile 'postgresql:postgresql:9.0-801.jdbc4'
 }
 
-project.ext {
-	if(!has('env')){ env ='dev'; }
-	// println project.ext.env
-    rcslabsRepo = 'http://repo.rcslabs.ru/archiva/repository/'+(version.endsWith('-SNAPSHOT') ? 'snapshots/' : 'internal/')
-    datetime = new java.text.SimpleDateFormat("yyyyMMdd-HHmm").format(Calendar.getInstance().getTime());
-    builder = System.getProperty("user.name");    
-	manifest = manifest {
-	    new ByteArrayOutputStream().withStream { os ->
-	        def result = exec {
-	            executable = 'svn'
-	            args = ['info']
-	            standardOutput = os
-	        }
-	        def rev = (os.toString() =~ /Last Changed Rev: (\d+)/)
-	        revision = rev[0][1];
-	        println "SVN Revision: ${revision}"
-	    }
-
-    	attributes(
-    		"Main-Class": "WebcallApp",
-    		"Created-By": "Gradle " + gradle.gradleVersion,
-    		"Built-By":  builder,
-    		"Build-Jdk": System.getProperty('java.version'),
-    		"Implementation-Title": "Alena app", 
-    		"Implementation-Version": version,
-    		"Implementation-Vendor-Id": "RCSLabs",
-    		"Implementation-Build": revision,
-    		"Implementation-Build-Timestamp": datetime
-    	)
-    }
-}
-
-repositories {
-    maven{ url 'http://repo.rcslabs.ru/archiva/repository/internal/'}
-    maven{ url 'http://repo.rcslabs.ru/archiva/repository/snapshots/'}
-    mavenLocal()
-    mavenCentral()
-}
-
 jar {
 	from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-	manifest = project.manifest {
-    	from project.ext.manifest
-	}
+    manifest {
+        attributes(
+            "Main-Class": "WebcallApp",
+            "Created-By": "Gradle " + gradle.gradleVersion,
+            "Built-By":  project.ext.builder,
+            "Build-Jdk": System.getProperty('java.version'),
+            "Implementation-Title": "Alena app", 
+            "Implementation-Version": version,
+            "Implementation-Vendor-Id": "RCSLabs",
+            "Implementation-Build": project.ext.revision,
+            "Implementation-Build-Timestamp": project.ext.datetime
+        )
+    }
 }
 
 publishing {
@@ -82,9 +47,5 @@ publishing {
                 )
             }
         }        
-    }
-
-    repositories {
-        maven { url rcslabsRepo }
     }
 }
