@@ -9,16 +9,10 @@ public class SIPMediaPoint extends MediaPoint{
 
     protected final static Logger log = LoggerFactory.getLogger(SIPMediaPoint.class);
 
-    public SIPMediaPoint(String sessionId, String callId,
+    public SIPMediaPoint(String sessionId, String callId, ClientCapabilities cc,
                           boolean hasVoice, boolean hasVideo) {
-        super(sessionId, callId, null, hasVoice, hasVideo, "internal");
+        super(sessionId, callId, cc, hasVoice, hasVideo, "internal");
         super.setLogger(log);
-        // TODO: Harcoded capabilities for SIP. Remove it in the future?
-        cc = new ClientCapabilities();
-        cc.setProfile("RTP/AVP");
-        cc.addAudio("PCMA/8000");
-        cc.addVideo("VP8/90000");
-        cc.addVideo("H264/90000");
     }
 
     protected void onSdpOffererReceived(MediaEvent event){

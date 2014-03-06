@@ -21,6 +21,7 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
     protected String profile;
     protected ISdpObject sdp;
     protected IMediaPointDelegate enterStateDelegate;
+    protected IMediaContext mediaContext;
 
     public ICallApplication getApp() {
         return app;
@@ -64,6 +65,16 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
     @Override
     public ISdpObject getSDP() {
         return sdp;
+    }
+
+    @Override
+    public IMediaContext getMediaContext() {
+        return mediaContext;
+    }
+
+    @Override
+    public void setMediaContext(IMediaContext mediaContext) {
+        this.mediaContext = mediaContext;
     }
 
     public MediaPoint(String sessionId, String callId, ClientCapabilities cc,

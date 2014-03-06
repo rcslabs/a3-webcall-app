@@ -17,10 +17,11 @@ public class RedisConfigChainHandler extends AbstractConfigChainHandler {
     @Override
     public String getPropertyAsString(String key){
         jedis.connect();
-        if(jedis.exists("config:webcall-app:"+key)){
-            return jedis.get("config:webcall-app:"+key);
+        if(jedis.exists(key)){
+            return jedis.get(key);
         }
         if(null == next) return null;
         return next.getPropertyAsString(key);
     }
+
 }

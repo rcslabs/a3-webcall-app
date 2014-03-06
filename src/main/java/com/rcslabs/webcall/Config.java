@@ -1,21 +1,17 @@
 package com.rcslabs.webcall;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Properties;
-
 import com.rcslabs.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.util.Properties;
 
 public class Config implements IConfig{
 
 	protected final static Logger log = LoggerFactory.getLogger(Config.class);
 
-	private IConfigChainHandler firstHandler;
+	private IConfig firstHandler;
 
 	public Config(){
         Properties args = new Properties();
@@ -37,95 +33,79 @@ public class Config implements IConfig{
         RedisConfigChainHandler redisHandler = new RedisConfigChainHandler(getMessagingHost(), getMessagingPort());
 
         // create chain
-        firstHandler.setNext(redisHandler);
+        ((IConfigChainHandler)firstHandler).setNext(redisHandler);
         redisHandler.setNext(fileHandler);
         fileHandler.setNext(defaultsHandler);
 	}
 	
 	@Override
 	public String getDatabaseUrl() {
-		return firstHandler.getPropertyAsString("db-url");
+		return firstHandler.getDatabaseUrl();
 	}
 
 	@Override
 	public String getDatabaseUser() {
-		return firstHandler.getPropertyAsString("db-user");
+		return firstHandler.getDatabaseUser();
 	}
 
 	@Override
 	public String getDatabasePassword() {
-		return firstHandler.getPropertyAsString("db-password");
+		return firstHandler.getDatabasePassword();
 	}
-	
-	@Override
+
+    @Override
 	public String getSipLocalHost() {
-		return firstHandler.getPropertyAsString("sip-local-host");
+		return firstHandler.getSipLocalHost();
 	}
 
 	@Override
 	public Integer getSipLocalPort() {
-		return firstHandler.getPropertyAsInteger("sip-local-port");
+		return firstHandler.getSipLocalPort();
 	}
 
 	@Override
 	public String getSipServerHost() {
-		return firstHandler.getPropertyAsString("sip-server-host");
+		return firstHandler.getSipServerHost();
 	}
 
 	@Override
 	public Integer getSipServerPort() {
-		return firstHandler.getPropertyAsInteger("sip-server-port");
+		return firstHandler.getSipServerPort();
 	}
 
 	@Override
 	public String getSipProxyHost() {
-		return firstHandler.getPropertyAsString("sip-proxy-host");
+		return firstHandler.getSipProxyHost();
 	}
 
 	@Override
 	public Integer getSipProxyPort() {
-		return firstHandler.getPropertyAsInteger("sip-proxy-port");
+		return firstHandler.getSipProxyPort();
 	}
 	
 	@Override
 	public Integer getSipExpires() {
-		return firstHandler.getPropertyAsInteger("sip-expires");
+		return firstHandler.getSipExpires();
 	}
 
 	@Override
 	public String getSipUserAgent() {
-		return firstHandler.getPropertyAsString("sip-user-agent");
+		return firstHandler.getSipUserAgent();
 	}
 
 	@Override
 	public String getMcChannel() {
-		return firstHandler.getPropertyAsString("mc-channel");
+		return firstHandler.getMcChannel();
 	}
 	
 	@Override
 	public String getMessagingHost() {
-		String mb = firstHandler.getPropertyAsString("messaging-uri");
-		if(null == mb){ return null; }
-		try {
-			URI u = new URI(mb);
-			return u.getHost();
-		} catch (URISyntaxException e) {
-			log.error("Error parse messaging URI: " + e.getMessage());
-		}
-		return null;
+		return firstHandler.getMessagingHost();
 	}
 
 	@Override
 	public Integer getMessagingPort() {
-		String mb = firstHandler.getPropertyAsString("messaging-uri");
-		if(null == mb){ return null; }
-		try {
-			URI u = new URI(mb);
-			return (-1 == u.getPort() ? 6379 : u.getPort());
-		} catch (URISyntaxException e) {
-			log.error("Error parse messaging URI: " + e.getMessage());
-		}
-		return null;
+		return firstHandler.getMessagingPort();
 	}
 
 	@Override

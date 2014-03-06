@@ -1,6 +1,7 @@
 package com.rcslabs.calls;
 
 import com.rcslabs.fsm.AbstractFSM;
+import com.rcslabs.media.IMediaContext;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.webcall.ICallApplication;
 import com.rcslabs.webcall.MessageType;
@@ -22,9 +23,8 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> 
     private boolean voice;
     private boolean video;
     private ICallApplication app;
-
+    private IMediaContext mediaCtx;
     private Map<String, Object> data;
-
     private ICallContextDelegate stateChangedDelegate;
 
     public CallContext(String sessionId, String aUri, String bUri, boolean hasVoice, boolean hasVideo, String id)
@@ -44,6 +44,13 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> 
         this.stateChangedDelegate = stateChangedDelegate;
     }
 
+    public IMediaContext getMediaContext() {
+        return mediaCtx;
+    }
+
+    public void setMediaContext(IMediaContext mediaCtx) {
+        this.mediaCtx = mediaCtx;
+    }
 
     public boolean hasVoice() {
         return voice;

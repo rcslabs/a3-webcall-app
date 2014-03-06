@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BaseApplication implements
@@ -228,6 +227,7 @@ public class BaseApplication implements
             List<Object> vv = (List<Object>) message.get(IMessage.PROP_VV);
             ICallContext ctx = new CallContext(sessionId, aUri, bUri, (Boolean)vv.get(0), (Boolean)vv.get(1), callId);
             ctx.initWith(this);
+            ctx.setMediaContext(new StaticMediaContext(config));
 
             if(!calls.containsKey(callId)){
                 calls.put(callId, ctx);
@@ -312,6 +312,7 @@ public class BaseApplication implements
 
         IMediaPoint mp = new WRTCMediaPoint(sessionId, callId, cc, hasVoice, hasVideo);
         mp.initWith(this);
+        mp.setMediaContext(calls.get(callId).getMediaContext());
         points.put(mp.getPointId(), mp);
 
         IMessage message = new Message(MessageType.CREATE_MEDIA_POINT);
@@ -321,7 +322,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_PROFILE, mp.getProfile());
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, sessionId);
-        broker.publish(getConfig().getMcChannel(), message);
+        broker.publish(mp.getMediaContext().getMcChannel(), message);
 
         return mp;
     }
@@ -330,8 +331,17 @@ public class BaseApplication implements
     public IMediaPoint createSIPMediaPoint(
             String sessionId, String callId, boolean hasVoice, boolean hasVideo) {
 
-        IMediaPoint mp = new SIPMediaPoint(sessionId, callId, hasVoice, hasVideo);
+        IMediaContext media = calls.get(callId).getMediaContext();
+        ClientCapabilities cc = new ClientCapabilities();
+        cc.setProfile("RTP/AVP");
+        Set<String> audioCodecs = media.getRtpAudioCodecs();
+        for(String c : audioCodecs){ cc.addAudio(c); }
+        Set<String> videoCodecs = media.getRtpAudioCodecs();
+        for(String c : videoCodecs){ cc.addVideo(c); }
+
+        IMediaPoint mp = new SIPMediaPoint(sessionId, callId, cc, hasVoice, hasVideo);
         mp.initWith(this);
+        mp.setMediaContext(media);
         points.put(mp.getPointId(), mp);
 
         IMessage message = new Message(MessageType.CREATE_MEDIA_POINT);
@@ -342,7 +352,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, sessionId);
         message.set("dtmf", true);
-        broker.publish(getConfig().getMcChannel(), message);
+        broker.publish(media.getMcChannel(), message);
 
         return mp;
     }
@@ -357,7 +367,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_POINT_ID, pointId);
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
-        broker.publish(getConfig().getMcChannel(), message);
+        broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
     @Override
@@ -370,7 +380,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_ROOM_ID, roomId);
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
-        broker.publish(getConfig().getMcChannel(), message);
+        broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
         mp.onEvent(new MediaEvent(MessageType.JOIN_OK));
     }
@@ -385,7 +395,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_ROOM_ID, roomId);
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
-        broker.publish(getConfig().getMcChannel(), message);
+        broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
         mp.onEvent(new MediaEvent(MessageType.UNJOIN_OK));
     }
@@ -410,7 +420,7 @@ public class BaseApplication implements
                     IMessage message = new Message(MessageType.SEND_DTMF);
                     message.set(IMessage.PROP_POINT_ID, item.getPointId());
                     message.set(IMessage.PROP_DTMF, dtmf);
-                    broker.publish(config.getMcChannel(), message);
+                    broker.publish(item.getMediaContext().getMcChannel(), message);
                 }
             }
         }
@@ -545,7 +555,7 @@ public class BaseApplication implements
     @Override
     public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
         message.set(IMessage.PROP_SENDER, getChannelName());
-        broker.publish(getConfig().getMcChannel(), message);
+        broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
     @Override
