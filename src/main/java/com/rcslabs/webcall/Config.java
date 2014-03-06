@@ -7,20 +7,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
+import com.rcslabs.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Config implements IConfig{
 
 	protected final static Logger log = LoggerFactory.getLogger(Config.class);
-	
-	private Properties args;
-	private Properties fromFile;
-	private Properties defaults;
-	
+
+	private IConfigChainHandler firstHandler;
+
 	public Config(){
-		
-		args = new Properties();
+        Properties args = new Properties();
 		String s = System.getProperty("sun.java.command");
 		String[] s2 = s.split(" ");
 		for(int i = 1; i < s2.length; ++i){
@@ -28,90 +26,85 @@ public class Config implements IConfig{
 			String[] s3 = s.split("=");  
 			args.setProperty(s3[0].substring(2), s3[1]);
 		}
-		
-		defaults = new Properties();
-		try {
-			defaults.load(this.getClass().getClassLoader()
-				.getResourceAsStream("default.properties")
-			);
-		} catch (IOException e) {
-			log.error("Error while config defaults loading: " + e.getMessage());
-		}
-		
-		fromFile = new Properties();
+
+        // init chain handlers
+        firstHandler = new ArgsConfigChainHandler();
+        FileConfigChainHandler fileHandler = new FileConfigChainHandler();
 		if(args.containsKey("config")){
-			try {
-				fromFile.load(new FileReader(args.getProperty("config")));
-			} catch (IOException e) {
-				log.error("Error while config loading from file " 
-			        + args.getProperty("config") + " : " + e.getMessage());
-			}			
+            fileHandler.readFile(args.getProperty("config"));
 		}
+        DefaultsConfigChainHandler defaultsHandler = new DefaultsConfigChainHandler();
+        RedisConfigChainHandler redisHandler = new RedisConfigChainHandler(getMessagingHost(), getMessagingPort());
+
+        // create chain
+        firstHandler.setNext(redisHandler);
+        redisHandler.setNext(fileHandler);
+        fileHandler.setNext(defaultsHandler);
 	}
 	
 	@Override
 	public String getDatabaseUrl() {
-		return getPropertyAsString("db-url");
+		return firstHandler.getPropertyAsString("db-url");
 	}
 
 	@Override
 	public String getDatabaseUser() {
-		return getPropertyAsString("db-user");
+		return firstHandler.getPropertyAsString("db-user");
 	}
 
 	@Override
 	public String getDatabasePassword() {
-		return getPropertyAsString("db-password");
+		return firstHandler.getPropertyAsString("db-password");
 	}
 	
 	@Override
 	public String getSipLocalHost() {
-		return getPropertyAsString("sip-local-host");
+		return firstHandler.getPropertyAsString("sip-local-host");
 	}
 
 	@Override
 	public Integer getSipLocalPort() {
-		return getPropertyAsInteger("sip-local-port");
+		return firstHandler.getPropertyAsInteger("sip-local-port");
 	}
 
 	@Override
 	public String getSipServerHost() {
-		return getPropertyAsString("sip-server-host");
+		return firstHandler.getPropertyAsString("sip-server-host");
 	}
 
 	@Override
 	public Integer getSipServerPort() {
-		return getPropertyAsInteger("sip-server-port");
+		return firstHandler.getPropertyAsInteger("sip-server-port");
 	}
 
 	@Override
 	public String getSipProxyHost() {
-		return getPropertyAsString("sip-proxy-host");
+		return firstHandler.getPropertyAsString("sip-proxy-host");
 	}
 
 	@Override
 	public Integer getSipProxyPort() {
-		return getPropertyAsInteger("sip-proxy-port");
+		return firstHandler.getPropertyAsInteger("sip-proxy-port");
 	}
 	
 	@Override
 	public Integer getSipExpires() {
-		return getPropertyAsInteger("sip-expires");
+		return firstHandler.getPropertyAsInteger("sip-expires");
 	}
 
 	@Override
 	public String getSipUserAgent() {
-		return getPropertyAsString("sip-user-agent");
+		return firstHandler.getPropertyAsString("sip-user-agent");
 	}
 
 	@Override
 	public String getMcChannel() {
-		return getPropertyAsString("mc-channel");
+		return firstHandler.getPropertyAsString("mc-channel");
 	}
 	
 	@Override
 	public String getMessagingHost() {
-		String mb = getPropertyAsString("messaging-uri");
+		String mb = firstHandler.getPropertyAsString("messaging-uri");
 		if(null == mb){ return null; }
 		try {
 			URI u = new URI(mb);
@@ -124,7 +117,7 @@ public class Config implements IConfig{
 
 	@Override
 	public Integer getMessagingPort() {
-		String mb = getPropertyAsString("messaging-uri");
+		String mb = firstHandler.getPropertyAsString("messaging-uri");
 		if(null == mb){ return null; }
 		try {
 			URI u = new URI(mb);
@@ -133,31 +126,6 @@ public class Config implements IConfig{
 			log.error("Error parse messaging URI: " + e.getMessage());
 		}
 		return null;
-	}
-	
-	public void initFromFile(String filename){}
-
-	@SuppressWarnings("unused")
-	private Boolean getPropertyAsBoolean(String key){
-		return Boolean.valueOf(getPropertyAsString(key));
-	}
-
-	private Integer getPropertyAsInteger(String key){
-		return Integer.valueOf(getPropertyAsString(key));
-	}
-	
-	private String getPropertyAsString(String key){
-		
-		if(args.containsKey(key)){
-			return args.getProperty(key);
-		}else if(fromFile.containsKey(key)){
-			return fromFile.getProperty(key);			
-		}else if(defaults.containsKey(key)){
-			return defaults.getProperty(key);			
-		}else{
-			log.warn("No property found for key=" + key);
-			return null;
-		}
 	}
 
 	@Override
