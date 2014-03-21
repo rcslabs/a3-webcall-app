@@ -1,7 +1,5 @@
 package com.rcslabs.webcall;
 
-import java.util.Set;
-
 public interface IConfig {
 
 	public abstract String getSipLocalHost();

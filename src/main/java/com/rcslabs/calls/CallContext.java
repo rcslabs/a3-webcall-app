@@ -2,7 +2,7 @@ package com.rcslabs.calls;
 
 import com.rcslabs.fsm.AbstractFSM;
 import com.rcslabs.media.IMediaContext;
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.webcall.AlenaMessage;
 import com.rcslabs.webcall.ICallApplication;
 import com.rcslabs.webcall.MessageType;
 import org.slf4j.Logger;
@@ -140,30 +140,30 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> 
     @Override
     protected void setState(CallState state, CallEvent event) {
         super.setState(state, event);
-        event.getMessage().set(IMessage.PROP_CALL_ID, callId); // only for START_CALL
+        event.getMessage().set(AlenaMessage.PROP_CALL_ID, callId); // only for START_CALL
 
         switch(state)
         {
             case STARTING:
-                stateChangedDelegate.onCallStarting(this, event.getMessage());
+                stateChangedDelegate.onCallStarting(this, (AlenaMessage)event.getMessage());
                 break;
 
             case STARTING_INCOMING:
                 // save SDP from incoming call
-                set(IMessage.PROP_SDP, event.getMessage().get(IMessage.PROP_SDP));
-                stateChangedDelegate.onIncomingCall(this, event.getMessage());
+                set(AlenaMessage.PROP_SDP, event.getMessage().get(AlenaMessage.PROP_SDP));
+                stateChangedDelegate.onIncomingCall(this, (AlenaMessage)event.getMessage());
                 break;
 
             case STARTED:
-                stateChangedDelegate.onCallStarted(this, event.getMessage());
+                stateChangedDelegate.onCallStarted(this, (AlenaMessage)event.getMessage());
                 break;
 
             case FAILED:
-                stateChangedDelegate.onCallFailed(this, event.getMessage());
+                stateChangedDelegate.onCallFailed(this, (AlenaMessage)event.getMessage());
                 break;
 
             case FINISHED:
-                stateChangedDelegate.onCallFinished(this, event.getMessage());
+                stateChangedDelegate.onCallFinished(this, (AlenaMessage)event.getMessage());
                 break;
         }
     }

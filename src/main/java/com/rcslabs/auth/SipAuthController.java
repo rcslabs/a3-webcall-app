@@ -1,9 +1,5 @@
 package com.rcslabs.auth;
 
-import com.rcslabs.messaging.IMessage;
-import com.rcslabs.messaging.IMessageBroker;
-import com.rcslabs.messaging.IMessageBrokerDelegate;
-import com.rcslabs.messaging.Message;
 import com.rcslabs.rcl.JainSipCall;
 import com.rcslabs.rcl.core.IConnection;
 import com.rcslabs.rcl.core.IConnectionListener;
@@ -16,6 +12,10 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
+import com.rcslabs.redis.IMessage;
+import com.rcslabs.redis.IMessageBroker;
+import com.rcslabs.redis.IMessageBrokerDelegate;
+import com.rcslabs.webcall.AlenaMessage;
 import com.rcslabs.webcall.IConfig;
 import com.rcslabs.webcall.MessageType;
 import org.slf4j.Logger;
@@ -53,19 +53,19 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 	public void onMessageReceived(String channel, IMessage message)
 	{
         try{
-            if(MessageType.START_SESSION == message.getType()){
-                String p0 = (String) message.get(IMessage.PROP_SERVICE);
-                String p1 = (String) message.get(IMessage.PROP_USERNAME);
-                String p2 = (String) message.get(IMessage.PROP_PASSWORD);
-                String p3 = (String) message.get(IMessage.PROP_CLIENT_ID);
-                String p4 = (String) message.get(IMessage.PROP_SENDER);
+            if(MessageType.START_SESSION == ((AlenaMessage)message).getType()){
+                String p0 = (String) message.get(AlenaMessage.PROP_SERVICE);
+                String p1 = (String) message.get(AlenaMessage.PROP_USERNAME);
+                String p2 = (String) message.get(AlenaMessage.PROP_PASSWORD);
+                String p3 = (String) message.get(AlenaMessage.PROP_CLIENT_ID);
+                String p4 = (String) message.get(AlenaMessage.PROP_SENDER);
                 Session session = new Session(p0, p1, p2);
                 session.setClientId(p3);
                 session.setSender(p4);
                 startSession(session);
 
-            }else if(MessageType.CLOSE_SESSION == message.getType()){
-                String p0 = (String) message.get(IMessage.PROP_SESSION_ID);
+            }else if(MessageType.CLOSE_SESSION == ((AlenaMessage)message).getType()){
+                String p0 = (String) message.get(AlenaMessage.PROP_SESSION_ID);
                 ISession session = findSession(p0);
                 if(null == session){
                     log.warn("Session not found for id=" + p0);
@@ -80,7 +80,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 
     @Override
     public void handleOnMessageException(IMessage message, Throwable e) {
-        message.cancel();
+        ((AlenaMessage)message).cancel();
         log.error(e.getMessage(), e);
     }
 
@@ -277,13 +277,13 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
         if(null == session){
             log.error("Session " + sessionId + " not found");
         } else {
-            IMessage message = new Message(MessageType.INCOMING_CALL);
-            message.set(IMessage.PROP_SERVICE, session.getService());
-            message.set(IMessage.PROP_SESSION_ID, sessionId);
-            message.set(IMessage.PROP_CALL_ID, call.getId());
-            message.set(IMessage.PROP_A_URI, prepareCallUri(((ICallParams)call).getFrom()));
-            message.set(IMessage.PROP_B_URI, prepareCallUri(((ICallParams)call).getTo()));
-            message.set(IMessage.PROP_SDP, ((JainSipCall)call).getSdpObject().getOfferer());
+            IMessage message = new AlenaMessage(MessageType.INCOMING_CALL);
+            message.set(AlenaMessage.PROP_SERVICE, session.getService());
+            message.set(AlenaMessage.PROP_SESSION_ID, sessionId);
+            message.set(AlenaMessage.PROP_CALL_ID, call.getId());
+            message.set(AlenaMessage.PROP_A_URI, prepareCallUri(((ICallParams)call).getFrom()));
+            message.set(AlenaMessage.PROP_B_URI, prepareCallUri(((ICallParams)call).getTo()));
+            message.set(AlenaMessage.PROP_SDP, ((JainSipCall)call).getSdpObject().getOfferer());
             broker.publish(session.getService(), message);
         }
 	}
@@ -305,31 +305,31 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 	public void onSessionStarted(ISession session) {
 		log.info("onSessionStarted " + session);
         session.onEvent(new SessionEvent(MessageType.SESSION_STARTED));
-		IMessage message = new Message(MessageType.SESSION_STARTED);
-        message.set(IMessage.PROP_SERVICE, session.getService());
-		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
-		message.set(IMessage.PROP_CLIENT_ID, session.getClientId());
+		IMessage message = new AlenaMessage(MessageType.SESSION_STARTED);
+        message.set(AlenaMessage.PROP_SERVICE, session.getService());
+		message.set(AlenaMessage.PROP_SESSION_ID, session.getSessionId());
+		message.set(AlenaMessage.PROP_CLIENT_ID, session.getClientId());
 		broker.publish(session.getSender(), message);
 	}
 
 	public void onSessionFailed(ISession session, String reason) {
 		log.info("onSessionFailed " + session);
         session.onEvent(new SessionEvent(MessageType.SESSION_FAILED));
-		IMessage message = new Message(MessageType.SESSION_FAILED);
-        message.set(IMessage.PROP_SERVICE, session.getService());
-		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
-		message.set(IMessage.PROP_CLIENT_ID, session.getClientId());
-		message.set(IMessage.PROP_REASON, reason);
+		IMessage message = new AlenaMessage(MessageType.SESSION_FAILED);
+        message.set(AlenaMessage.PROP_SERVICE, session.getService());
+		message.set(AlenaMessage.PROP_SESSION_ID, session.getSessionId());
+		message.set(AlenaMessage.PROP_CLIENT_ID, session.getClientId());
+		message.set(AlenaMessage.PROP_REASON, reason);
 		broker.publish(session.getSender(), message);
 	}
 
 	public void onSessionClosed(ISession session) {
 		log.info("onSessionClosed " + session);
         session.onEvent(new SessionEvent(MessageType.SESSION_CLOSED));
-		IMessage message = new Message(MessageType.SESSION_CLOSED);
-        message.set(IMessage.PROP_SERVICE, session.getService());
-		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
-		message.set(IMessage.PROP_CLIENT_ID, session.getClientId());
+		IMessage message = new AlenaMessage(MessageType.SESSION_CLOSED);
+        message.set(AlenaMessage.PROP_SERVICE, session.getService());
+		message.set(AlenaMessage.PROP_SESSION_ID, session.getSessionId());
+		message.set(AlenaMessage.PROP_CLIENT_ID, session.getClientId());
 		broker.publish(session.getSender(), message);
 	}
 }

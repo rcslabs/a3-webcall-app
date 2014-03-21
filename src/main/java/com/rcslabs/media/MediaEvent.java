@@ -1,24 +1,24 @@
 package com.rcslabs.media;
 
-import com.rcslabs.messaging.IMessage;
 import com.rcslabs.fsm.IFSMEvent;
+import com.rcslabs.webcall.AlenaMessage;
 import com.rcslabs.webcall.MessageType;
 
 public class MediaEvent implements IFSMEvent<MessageType> {
 
     private MessageType type;
 
-    private IMessage originalMessage;
+    private AlenaMessage originalMessage;
 
     public MessageType getType(){
         return type;
     }
 
-    public IMessage getMessage(){
+    public AlenaMessage getMessage(){
         return originalMessage;
     }
 
-    public MediaEvent(IMessage msg){
+    public MediaEvent(AlenaMessage msg){
         this(msg.getType());
         this.originalMessage = msg;
     }

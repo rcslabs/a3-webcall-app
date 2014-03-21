@@ -1,9 +1,9 @@
 package com.rcslabs.media;
 
 import com.rcslabs.calls.ClientCapabilities;
+import com.rcslabs.fsm.AbstractFSM;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 import com.rcslabs.rcl.telephony.entity.SdpObject;
-import com.rcslabs.fsm.AbstractFSM;
 import com.rcslabs.webcall.ICallApplication;
 import com.rcslabs.webcall.MessageType;
 

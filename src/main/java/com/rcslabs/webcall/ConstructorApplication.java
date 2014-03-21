@@ -1,11 +1,9 @@
 package com.rcslabs.webcall;
 
-import com.rcslabs.calls.CallContext;
 import com.rcslabs.calls.ICallContext;
-import com.rcslabs.messaging.IMessage;
-import com.rcslabs.messaging.IMessageBroker;
-import com.rcslabs.messaging.Message;
 import com.rcslabs.rcl.core.IRclFactory;
+import com.rcslabs.redis.IMessage;
+import com.rcslabs.redis.IMessageBroker;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,31 +59,31 @@ public class ConstructorApplication extends BaseApplication {
     }
 
     @Override
-    public void beforeStartSession(IMessage message) throws Exception
+    public void beforeStartSession(AlenaMessage message) throws Exception
     {
-        String projectId = (String)message.get(IMessage.PROP_PROJECT_ID);
+        String projectId = (String)message.get(AlenaMessage.PROP_PROJECT_ID);
         Map<String, String> props = resolveButtonProperties(projectId);
-        message.set(IMessage.PROP_USERNAME, props.get(SIP_USERNAME));
-        message.set(IMessage.PROP_PASSWORD, props.get(SIP_PASSWORD));
+        message.set(AlenaMessage.PROP_USERNAME, props.get(SIP_USERNAME));
+        message.set(AlenaMessage.PROP_PASSWORD, props.get(SIP_PASSWORD));
     }
 
     @Override
-    public ICallContext createCallContext(IMessage message)
+    public ICallContext createCallContext(AlenaMessage message)
     {
         ICallContext ctx;
         try {
-            String projectId = (String)message.get(IMessage.PROP_PROJECT_ID);
+            String projectId = (String)message.get(AlenaMessage.PROP_PROJECT_ID);
             Map<String, String> props = resolveButtonProperties(projectId);
-            List<Object> vv = (List<Object>) message.get(IMessage.PROP_VV);
+            List<Object> vv = (List<Object>) message.get(AlenaMessage.PROP_VV);
             String bUri = props.get((Boolean) vv.get(1) ? SIP_VIDEO_PHONE_NUMBER : SIP_VOICE_PHONE_NUMBER);
             if(-1 == bUri.indexOf('@')){
                 bUri += "@"+config.getSipServerHost()+":"+config.getSipServerPort();
             }
-            message.set(IMessage.PROP_B_URI, bUri);
+            message.set(AlenaMessage.PROP_B_URI, bUri);
 
             ctx = super.createCallContext(message);
 
-            ctx.set(IMessage.PROP_PROJECT_ID, projectId);
+            ctx.set(AlenaMessage.PROP_PROJECT_ID, projectId);
             // copy all interest parameters from database into call context
             if(props.containsKey(VIDEO_CALL_DURATION))
                 ctx.set(VIDEO_CALL_DURATION, props.get(VIDEO_CALL_DURATION));
@@ -99,13 +97,13 @@ public class ConstructorApplication extends BaseApplication {
                 ctx.set(DURATION_NOTIFICATION_SIPMSG, props.get(DURATION_NOTIFICATION_SIPMSG));
             return ctx;
         }catch (Exception e){
-            log.error("Critical error on create call context for callId="+message.get(IMessage.PROP_CALL_ID), e);
+            log.error("Critical error on create call context for callId="+message.get(AlenaMessage.PROP_CALL_ID), e);
         }
         return null;
     }
 
     @Override
-    public void onCallStarted(ICallContext ctx, IMessage message)
+    public void onCallStarted(ICallContext ctx, AlenaMessage message)
     {
         super.onCallStarted(ctx, message);
 
@@ -182,9 +180,9 @@ public class ConstructorApplication extends BaseApplication {
         @Override
         public void run() {
             log.info("Finishing call {} by timer", ctx.getSipId());
-            IMessage message = new Message(MessageType.HANGUP_CALL);
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
+            IMessage message = new AlenaMessage(MessageType.HANGUP_CALL);
+            message.set(AlenaMessage.PROP_SESSION_ID, ctx.getSessionId());
+            message.set(AlenaMessage.PROP_CALL_ID, ctx.getCallId());
             broker.publish(channelName, message);
         }
     }
@@ -202,11 +200,11 @@ public class ConstructorApplication extends BaseApplication {
         @Override
         public void run() {
             log.info("Notification call {} by timer", ctx.getSipId());
-            IMessage message = new Message(MessageType.CALL_FINISH_NOTIFICATION);
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            message.set(IMessage.PROP_TIME_BEFORE_FINISH, timeBeforeFinish);
-            broker.publish(message.getClientChannel(), message);
+            IMessage message = new AlenaMessage(MessageType.CALL_FINISH_NOTIFICATION);
+            message.set(AlenaMessage.PROP_SESSION_ID, ctx.getSessionId());
+            message.set(AlenaMessage.PROP_CALL_ID, ctx.getCallId());
+            message.set(AlenaMessage.PROP_TIME_BEFORE_FINISH, timeBeforeFinish);
+            broker.publish( ((AlenaMessage)message).getClientChannel(), message);
 
         }
     }

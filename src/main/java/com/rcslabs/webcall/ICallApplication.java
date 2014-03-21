@@ -4,12 +4,11 @@ import com.rcslabs.auth.IAuthController;
 import com.rcslabs.calls.ClientCapabilities;
 import com.rcslabs.calls.ICallContext;
 import com.rcslabs.media.IMediaPoint;
-import com.rcslabs.messaging.IMessage;
-import com.rcslabs.messaging.IMessageBrokerDelegate;
+import com.rcslabs.redis.IMessageBrokerDelegate;
 
 import java.util.List;
 
-public interface ICallApplication extends IMessageBrokerDelegate{
+public interface ICallApplication extends IMessageBrokerDelegate {
 
     boolean ready();
 
@@ -19,9 +18,9 @@ public interface ICallApplication extends IMessageBrokerDelegate{
 
 	String getChannelName();
 
-    void beforeStartSession(IMessage message) throws Exception;
+    void beforeStartSession(AlenaMessage message) throws Exception;
 
-    ICallContext createCallContext(IMessage message);
+    ICallContext createCallContext(AlenaMessage message);
 
     ICallContext findCallContext(String callId);
 

@@ -1,8 +1,8 @@
 package com.rcslabs.media;
 
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.rcl.telephony.entity.ISdpObject;
 import com.rcslabs.fsm.IFSM;
+import com.rcslabs.rcl.telephony.entity.ISdpObject;
 
 public interface IMediaPoint extends IFSM<IMediaPoint.MediaPointState, MediaEvent>
 {

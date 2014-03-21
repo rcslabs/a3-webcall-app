@@ -1,13 +1,13 @@
 package com.rcslabs.media;
 
 
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.webcall.AlenaMessage;
 
 public interface IMediaPointDelegate {
-    void onSdpOffererReceived(IMediaPoint mp, IMessage message);
-    void onSdpAnswererReceived(IMediaPoint mp, IMessage message);
-    void onMediaPointCreated(IMediaPoint mp, IMessage message);
-    void onMediaPointJoinedToRoom(IMediaPoint mp, IMessage message);
-    void onMediaPointUnjoinedFromRoom(IMediaPoint mp, IMessage message);
-    void onMediaFailed(IMediaPoint mp, IMessage message);
+    void onSdpOffererReceived(IMediaPoint mp, AlenaMessage message);
+    void onSdpAnswererReceived(IMediaPoint mp, AlenaMessage message);
+    void onMediaPointCreated(IMediaPoint mp, AlenaMessage message);
+    void onMediaPointJoinedToRoom(IMediaPoint mp, AlenaMessage message);
+    void onMediaPointUnjoinedFromRoom(IMediaPoint mp, AlenaMessage message);
+    void onMediaFailed(IMediaPoint mp, AlenaMessage message);
 }
