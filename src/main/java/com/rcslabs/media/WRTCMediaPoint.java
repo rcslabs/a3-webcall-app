@@ -1,8 +1,7 @@
 package com.rcslabs.media;
 
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.redis.IMessage;
-import com.rcslabs.webcall.AlenaMessage;
+import com.rcslabs.messaging.IMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,22 +19,22 @@ public class WRTCMediaPoint extends MediaPoint {
     protected void onSdpOffererReceived(MediaEvent event){
         // Now we get the source message
         IMessage msg = event.getMessage().cloneWithSameType();
-        sdp.setOfferer((String)msg.get(AlenaMessage.PROP_SDP));
+        sdp.setOfferer((String)msg.get(IMessage.PROP_SDP));
         // and set self properties into one for pretty publishing.
-        msg.set(AlenaMessage.PROP_CALL_ID,  callId);
-        msg.set(AlenaMessage.PROP_POINT_ID, pointId);
-        msg.set(AlenaMessage.PROP_PROFILE, profile);
-        msg.set(AlenaMessage.PROP_SESSION_ID, sessionId);
-        enterStateDelegate.onSdpOffererReceived(this, (AlenaMessage)msg);
+        msg.set(IMessage.PROP_CALL_ID,  callId);
+        msg.set(IMessage.PROP_POINT_ID, pointId);
+        msg.set(IMessage.PROP_PROFILE, profile);
+        msg.set(IMessage.PROP_SESSION_ID, sessionId);
+        enterStateDelegate.onSdpOffererReceived(this, msg);
     }
 
     protected void onSdpAnswererReceived(MediaEvent event){
         IMessage msg = event.getMessage().cloneWithSameType();
-        sdp.setAnswerer((String) msg.get(AlenaMessage.PROP_SDP));
-        msg.set(AlenaMessage.PROP_CALL_ID,  callId);
-        msg.set(AlenaMessage.PROP_POINT_ID, pointId);
-        msg.set(AlenaMessage.PROP_PROFILE, profile);
-        enterStateDelegate.onSdpAnswererReceived(this, (AlenaMessage)msg);
+        sdp.setAnswerer((String) msg.get(IMessage.PROP_SDP));
+        msg.set(IMessage.PROP_CALL_ID,  callId);
+        msg.set(IMessage.PROP_POINT_ID, pointId);
+        msg.set(IMessage.PROP_PROFILE, profile);
+        enterStateDelegate.onSdpAnswererReceived(this, msg);
     }
 
     public String toString(){

@@ -3,16 +3,13 @@ package com.rcslabs.webcall;
 import com.rcslabs.auth.*;
 import com.rcslabs.calls.*;
 import com.rcslabs.media.*;
+import com.rcslabs.messaging.*;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.exception.ServiceNotEnabledException;
 import com.rcslabs.rcl.telephony.ICall;
 import com.rcslabs.rcl.telephony.ICallListener;
 import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.entity.*;
-import com.rcslabs.redis.IMessage;
-import com.rcslabs.redis.IMessageBroker;
-import com.rcslabs.redis.IMessageBrokerDelegate;
-import com.rcslabs.redis.ITypedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +34,7 @@ public class BaseApplication implements
     protected Map<String, ICallContext> calls;
     protected Map<String, String> sipId2callId; // sip ID to call ID mapping
 
+    protected CallLogger callLogger;
 
     public BaseApplication(String channelName, IConfig config, IMessageBroker broker, IRclFactory factory)
     {
@@ -51,6 +49,8 @@ public class BaseApplication implements
 
         jainSipCallListener = new JainSipCallListener(this);
         authController = new SipAuthController(config, broker, factory);
+
+        callLogger = new CallLogger(((RedisMessageBroker)broker).getJedisPool());
     }
 
     @Override
@@ -58,17 +58,17 @@ public class BaseApplication implements
         return true;
     }
 
-    protected void validateMessage(ITypedMessage<MessageType> message) throws Exception
+    protected void validateMessage(IMessage message) throws Exception
     {
         if(message.getType() == MessageType.START_SESSION){ return; }
 
         // all messages except START_SESSION must contains parameter "sessionId"
         // validate it and throw Exception unsuccessfully
 
-        if(!message.has(AlenaMessage.PROP_SESSION_ID)){
+        if(!message.has(IMessage.PROP_SESSION_ID)){
             throw new Exception("Skip the message without sessionId " + message);
         } else {
-            String sessionId = (String)message.get(AlenaMessage.PROP_SESSION_ID);
+            String sessionId = (String)message.get(IMessage.PROP_SESSION_ID);
             ISession session = authController.findSession(sessionId);
             if(null == session){
                 log.warn("Session for message not found " + message);
@@ -78,10 +78,8 @@ public class BaseApplication implements
 
 
     @Override
-    public void onMessageReceived(String channel, IMessage message0)
+    public void onMessageReceived(String channel, IMessage message)
     {
-        AlenaMessage message = (AlenaMessage)message0;
-
         try {
             validateMessage(message);
 
@@ -102,7 +100,7 @@ public class BaseApplication implements
                     ctx = createCallContext(message);
                     // create first WRTC media point
                     createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
-                            new ClientCapabilities(message.get(AlenaMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
+                            new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
                     );
                     ctx.onEvent(new CallEvent(message));
                     break;
@@ -116,7 +114,7 @@ public class BaseApplication implements
                 case CALL_STARTED:
                 case CALL_FINISHED:
                 case HANGUP_CALL:
-                    callId = (String) message.get(AlenaMessage.PROP_CALL_ID);
+                    callId = (String) message.get(IMessage.PROP_CALL_ID);
                     ctx = findCallContext(callId);
                     if(null != ctx) {
                         ctx.onEvent(new CallEvent(message));
@@ -127,7 +125,7 @@ public class BaseApplication implements
 
                 case ACCEPT_CALL:
                     // TODO: case REJECT_CALL:
-                    callId = (String) message.get(AlenaMessage.PROP_CALL_ID);
+                    callId = (String) message.get(IMessage.PROP_CALL_ID);
                     ctx = findCallContext(callId);
                     if(null != ctx) {
                         ctx.onEvent(new CallEvent(message));
@@ -136,12 +134,12 @@ public class BaseApplication implements
                     }
                     // create WRTC media point (anyway) for abonent B at first
                     createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
-                            new ClientCapabilities(message.get(AlenaMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
+                            new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
                     );
                     break;
 
                 case SEND_DTMF:
-                    sendDTMF((String) message.get(AlenaMessage.PROP_CALL_ID), (String) message.get(AlenaMessage.PROP_DTMF));
+                    sendDTMF((String) message.get(IMessage.PROP_CALL_ID), (String) message.get(IMessage.PROP_DTMF));
                     break;
 
                 //   media messages
@@ -156,7 +154,7 @@ public class BaseApplication implements
                 case UNJOIN_FAILED:
                 case REMOVE_MEDIA_POINT_OK:
                 case REMOVE_MEDIA_POINT_FAILED:
-                    String pointId = (String) message.get(AlenaMessage.PROP_POINT_ID);
+                    String pointId = (String) message.get(IMessage.PROP_POINT_ID);
                     IMediaPoint mp = findMediaPoint(pointId);
                     if(null != mp){
                         mp.onEvent(new MediaEvent(message));
@@ -176,12 +174,11 @@ public class BaseApplication implements
 
     @Override
     public void handleOnMessageException(IMessage message, Throwable e){
-        ((AlenaMessage)message).cancel();
         log.error(e.getMessage(), e);
 
-        if(((AlenaMessage)message).getType() == MessageType.START_SESSION){
+        if(message.getType() == MessageType.START_SESSION){
             ((IAuthControllerDelegate)authController)
-                    .onSessionFailed(new CriticalFailedSession(((AlenaMessage)message)), "Critical error");
+                    .onSessionFailed(new CriticalFailedSession(message), "Critical error");
         }
     }
 
@@ -204,11 +201,11 @@ public class BaseApplication implements
 
 
     @Override
-    public void beforeStartSession(AlenaMessage message) throws Exception{}
+    public void beforeStartSession(IMessage message) throws Exception{}
 
 
     @Override
-    public ICallContext createCallContext(AlenaMessage message)    // TODO: for incoming call
+    public ICallContext createCallContext(IMessage message)    // TODO: for incoming call
     {
         try {
 
@@ -216,17 +213,17 @@ public class BaseApplication implements
             if(0 != config.getSipServerPort() && 5060 != config.getSipServerPort()){
                 sipAddr += (":"+config.getSipServerPort());
             }
-            ISession session = getAuthController().findSession((String)message.get(AlenaMessage.PROP_SESSION_ID));
+            ISession session = getAuthController().findSession((String)message.get(IMessage.PROP_SESSION_ID));
 
-            String sessionId = (String)message.get(AlenaMessage.PROP_SESSION_ID);
+            String sessionId = (String)message.get(IMessage.PROP_SESSION_ID);
             String callId = UUID.randomUUID().toString();
             String aUri = session.getUsername();
-            String bUri = ((String)message.get(AlenaMessage.PROP_B_URI));
+            String bUri = ((String)message.get(IMessage.PROP_B_URI));
 
             if(aUri.matches("^\\d+$")){ aUri = "sip:"+aUri+"@"+sipAddr; }
             if(bUri.matches("^\\d+$")){ bUri = "sip:"+bUri+"@"+sipAddr; }
 
-            List<Object> vv = (List<Object>) message.get(AlenaMessage.PROP_VV);
+            List<Object> vv = (List<Object>) message.get(IMessage.PROP_VV);
             ICallContext ctx = new CallContext(sessionId, aUri, bUri, (Boolean)vv.get(0), (Boolean)vv.get(1), callId);
             ctx.initWith(this);
             ctx.setMediaContext(new StaticMediaContext(config));
@@ -247,11 +244,11 @@ public class BaseApplication implements
     public ICallContext createIncomingCallContext(IMessage message)
     {
         try {
-            String sessionId = (String)message.get(AlenaMessage.PROP_SESSION_ID);
-            String callId =    (String)message.get(AlenaMessage.PROP_CALL_ID);
-            String aUri =      (String)message.get(AlenaMessage.PROP_A_URI);
-            String bUri =      (String)message.get(AlenaMessage.PROP_B_URI);
-            String sdp =       (String)message.get(AlenaMessage.PROP_SDP);
+            String sessionId = (String)message.get(IMessage.PROP_SESSION_ID);
+            String callId =    (String)message.get(IMessage.PROP_CALL_ID);
+            String aUri =      (String)message.get(IMessage.PROP_A_URI);
+            String bUri =      (String)message.get(IMessage.PROP_B_URI);
+            String sdp =       (String)message.get(IMessage.PROP_SDP);
 
             // analyze SDP and set 'vv' properties
             boolean hasVoice = Pattern.compile("^m=audio", Pattern.MULTILINE).matcher(sdp).find();
@@ -294,6 +291,7 @@ public class BaseApplication implements
             call.start(params);
             ctx.setSipId(call.getId());
             sipId2callId.put(ctx.getSipId(), ctx.getCallId());
+            callLogger.push(new CallLogEntry(MessageType.START_CALL, ctx));
         }catch(Exception e){
             log.error(e.getMessage(), e);
         }
@@ -317,13 +315,13 @@ public class BaseApplication implements
         mp.setMediaContext(calls.get(callId).getMediaContext());
         points.put(mp.getPointId(), mp);
 
-        IMessage message = new AlenaMessage(MessageType.CREATE_MEDIA_POINT);
-        message.set(AlenaMessage.PROP_CC, mp.getClientCapabilities().getRawData());
-        message.set(AlenaMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
-        message.set(AlenaMessage.PROP_POINT_ID, mp.getPointId());
-        message.set(AlenaMessage.PROP_PROFILE, mp.getProfile());
-        message.set(AlenaMessage.PROP_SENDER, getChannelName());
-        message.set(AlenaMessage.PROP_SESSION_ID, sessionId);
+        IMessage message = new Message(MessageType.CREATE_MEDIA_POINT);
+        message.set(IMessage.PROP_CC, mp.getClientCapabilities().getRawData());
+        message.set(IMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
+        message.set(IMessage.PROP_POINT_ID, mp.getPointId());
+        message.set(IMessage.PROP_PROFILE, mp.getProfile());
+        message.set(IMessage.PROP_SENDER, getChannelName());
+        message.set(IMessage.PROP_SESSION_ID, sessionId);
         broker.publish(mp.getMediaContext().getMcChannel(), message);
 
         return mp;
@@ -346,13 +344,13 @@ public class BaseApplication implements
         mp.setMediaContext(media);
         points.put(mp.getPointId(), mp);
 
-        IMessage message = new AlenaMessage(MessageType.CREATE_MEDIA_POINT);
-        message.set(AlenaMessage.PROP_CC, mp.getClientCapabilities().getRawData());
-        message.set(AlenaMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
-        message.set(AlenaMessage.PROP_POINT_ID, mp.getPointId());
-        message.set(AlenaMessage.PROP_PROFILE, mp.getProfile());
-        message.set(AlenaMessage.PROP_SENDER, getChannelName());
-        message.set(AlenaMessage.PROP_SESSION_ID, sessionId);
+        IMessage message = new Message(MessageType.CREATE_MEDIA_POINT);
+        message.set(IMessage.PROP_CC, mp.getClientCapabilities().getRawData());
+        message.set(IMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
+        message.set(IMessage.PROP_POINT_ID, mp.getPointId());
+        message.set(IMessage.PROP_PROFILE, mp.getProfile());
+        message.set(IMessage.PROP_SENDER, getChannelName());
+        message.set(IMessage.PROP_SESSION_ID, sessionId);
         message.set("dtmf", true);
         broker.publish(media.getMcChannel(), message);
 
@@ -365,10 +363,10 @@ public class BaseApplication implements
         if(mp == null){ return; /* skip */ }
         points.remove(pointId);
 
-        IMessage message = new AlenaMessage(MessageType.REMOVE_MEDIA_POINT);
-        message.set(AlenaMessage.PROP_POINT_ID, pointId);
-        message.set(AlenaMessage.PROP_SENDER, getChannelName());
-        message.set(AlenaMessage.PROP_SESSION_ID, mp.getSessionId());
+        IMessage message = new Message(MessageType.REMOVE_MEDIA_POINT);
+        message.set(IMessage.PROP_POINT_ID, pointId);
+        message.set(IMessage.PROP_SENDER, getChannelName());
+        message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
@@ -377,11 +375,11 @@ public class BaseApplication implements
         IMediaPoint mp = findMediaPoint(pointId);
         if(mp == null){ return; /* skip */ }
 
-        IMessage message = new AlenaMessage(MessageType.JOIN_ROOM);
-        message.set(AlenaMessage.PROP_POINT_ID, pointId);
-        message.set(AlenaMessage.PROP_ROOM_ID, roomId);
-        message.set(AlenaMessage.PROP_SENDER, getChannelName());
-        message.set(AlenaMessage.PROP_SESSION_ID, mp.getSessionId());
+        IMessage message = new Message(MessageType.JOIN_ROOM);
+        message.set(IMessage.PROP_POINT_ID, pointId);
+        message.set(IMessage.PROP_ROOM_ID, roomId);
+        message.set(IMessage.PROP_SENDER, getChannelName());
+        message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
         mp.onEvent(new MediaEvent(MessageType.JOIN_OK));
@@ -392,11 +390,11 @@ public class BaseApplication implements
         IMediaPoint mp = findMediaPoint(pointId);
         if(mp == null){ return; /* skip */ }
 
-        IMessage message = new AlenaMessage(MessageType.UNJOIN_ROOM);
-        message.set(AlenaMessage.PROP_POINT_ID, pointId);
-        message.set(AlenaMessage.PROP_ROOM_ID, roomId);
-        message.set(AlenaMessage.PROP_SENDER, getChannelName());
-        message.set(AlenaMessage.PROP_SESSION_ID, mp.getSessionId());
+        IMessage message = new Message(MessageType.UNJOIN_ROOM);
+        message.set(IMessage.PROP_POINT_ID, pointId);
+        message.set(IMessage.PROP_ROOM_ID, roomId);
+        message.set(IMessage.PROP_SENDER, getChannelName());
+        message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
         mp.onEvent(new MediaEvent(MessageType.UNJOIN_OK));
@@ -419,9 +417,9 @@ public class BaseApplication implements
         for (IMediaPoint item : points.values()) {
             if (item.getCallId().equals(callId)) {
                 if(item instanceof SIPMediaPoint){
-                    IMessage message = new AlenaMessage(MessageType.SEND_DTMF);
-                    message.set(AlenaMessage.PROP_POINT_ID, item.getPointId());
-                    message.set(AlenaMessage.PROP_DTMF, dtmf);
+                    IMessage message = new Message(MessageType.SEND_DTMF);
+                    message.set(IMessage.PROP_POINT_ID, item.getPointId());
+                    message.set(IMessage.PROP_DTMF, dtmf);
                     broker.publish(item.getMediaContext().getMcChannel(), message);
                 }
             }
@@ -482,46 +480,49 @@ public class BaseApplication implements
 
 
     @Override
-    public void onCallStarting(ICallContext ctx, AlenaMessage message) {
+    public void onCallStarting(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithAnyType(MessageType.CALL_STARTING));
+        callLogger.push(new CallLogEntry(MessageType.CALL_STARTING, ctx));
     }
 
     @Override
-    public void onIncomingCall(ICallContext ctx, AlenaMessage message) {
+    public void onIncomingCall(ICallContext ctx, IMessage message) {
         IMessage message2 = message.cloneWithSameType();
-        message2.delete(AlenaMessage.PROP_SDP);
+        message2.delete(IMessage.PROP_SDP);
         List<Boolean> vv = new ArrayList<Boolean>();
         vv.add(ctx.hasVoice());
         vv.add(ctx.hasVideo());
-        message2.set(AlenaMessage.PROP_VV, vv);
+        message2.set(IMessage.PROP_VV, vv);
         broker.publish(message.getClientChannel(), message2);
     }
 
     @Override
-    public void onCallStarted(ICallContext ctx, AlenaMessage message) {
+    public void onCallStarted(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithSameType());
-
+        callLogger.push(new CallLogEntry(MessageType.CALL_STARTED, ctx));
         // it was a SIP call? Find media point and set state
         IMessage sipSdpAnswerMessage = message.cloneWithAnyType(MessageType.SDP_ANSWER);
         for(IMediaPoint p : points.values()){
-            if(p.getCallId().equals(message.get(AlenaMessage.PROP_CALL_ID))
+            if(p.getCallId().equals(message.get(IMessage.PROP_CALL_ID))
                     && p.getState() == IMediaPoint.MediaPointState.OFFERER_RECEIVED){
                 // ok, this is media point waiting SDP answer?
-                p.onEvent(new MediaEvent((AlenaMessage)sipSdpAnswerMessage)); break;
+                p.onEvent(new MediaEvent(sipSdpAnswerMessage)); break;
             }
         }
     }
 
     @Override
-    public void onCallFinished(ICallContext ctx, AlenaMessage message) {
+    public void onCallFinished(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithAnyType(MessageType.CALL_FINISHED));
+        callLogger.push(new CallLogEntry(MessageType.CALL_FINISHED, ctx));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
     }
 
     @Override
-    public void onCallFailed(ICallContext ctx, AlenaMessage message) {
+    public void onCallFailed(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithSameType());
+        callLogger.push(new CallLogEntry(MessageType.CALL_FAILED, ctx, ""+message.get(IMessage.PROP_REASON)));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
     }
@@ -537,7 +538,7 @@ public class BaseApplication implements
 
 
     @Override
-    public void onSdpOffererReceived(IMediaPoint mp, AlenaMessage message) {
+    public void onSdpOffererReceived(IMediaPoint mp, IMessage message) {
         // WRTC - send to client
         if(mp instanceof WRTCMediaPoint){
             broker.publish(message.getClientChannel(), message);
@@ -546,22 +547,22 @@ public class BaseApplication implements
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
-                IMessage message2 = new AlenaMessage(MessageType.CALL_FAILED);
+                IMessage message2 = new Message(MessageType.CALL_FAILED);
                 broker.publish(message.getClientChannel(), message2);
                 return;
             }
-            startCall(ctx, (String)message.get(AlenaMessage.PROP_SDP));
+            startCall(ctx, (String)message.get(IMessage.PROP_SDP));
         }
     }
 
     @Override
-    public void onSdpAnswererReceived(IMediaPoint mp, AlenaMessage message) {
-        message.set(AlenaMessage.PROP_SENDER, getChannelName());
+    public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
+        message.set(IMessage.PROP_SENDER, getChannelName());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
     @Override
-    public void onMediaPointCreated(IMediaPoint mp, AlenaMessage message) {
+    public void onMediaPointCreated(IMediaPoint mp, IMessage message) {
         // TODO: now simple logic for outgoing call to SIP
         if(mp instanceof WRTCMediaPoint){
             createSIPMediaPoint(mp.getSessionId(), mp.getCallId(), mp.hasVoice(), mp.hasVideo());
@@ -570,7 +571,7 @@ public class BaseApplication implements
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
-                IMessage message2 = new AlenaMessage(MessageType.CALL_FAILED);
+                IMessage message2 = new Message(MessageType.CALL_FAILED);
                 broker.publish(message.getClientChannel(), message2);
                 return;
             }
@@ -583,19 +584,19 @@ public class BaseApplication implements
     }
 
     @Override
-    public void onMediaPointJoinedToRoom(IMediaPoint mp, AlenaMessage message) { }
+    public void onMediaPointJoinedToRoom(IMediaPoint mp, IMessage message) { }
 
     @Override
-    public void onMediaPointUnjoinedFromRoom(IMediaPoint mp, AlenaMessage message) { }
+    public void onMediaPointUnjoinedFromRoom(IMediaPoint mp, IMessage message) { }
 
     @Override
-    public void onMediaFailed(IMediaPoint mp, AlenaMessage message) {
+    public void onMediaFailed(IMediaPoint mp, IMessage message) {
         ICallContext ctx = findCallContext(mp.getCallId());
         if(null != ctx){
-            AlenaMessage msg = new AlenaMessage(MessageType.CALL_FAILED);
-            msg.set(AlenaMessage.PROP_SESSION_ID, ctx.getSessionId());
-            msg.set(AlenaMessage.PROP_CALL_ID, ctx.getCallId());
-            msg.set(AlenaMessage.PROP_REASON, "" + message.getType());
+            IMessage msg = new Message(MessageType.CALL_FAILED);
+            msg.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
+            msg.set(IMessage.PROP_CALL_ID, ctx.getCallId());
+            msg.set(IMessage.PROP_REASON, "" + message.getType());
             onCallFailed(ctx, msg);
         }
     }

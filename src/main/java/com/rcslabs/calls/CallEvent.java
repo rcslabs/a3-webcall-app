@@ -1,8 +1,7 @@
 package com.rcslabs.calls;
 
 import com.rcslabs.fsm.IFSMEvent;
-import com.rcslabs.redis.IMessage;
-import com.rcslabs.redis.ITypedMessage;
+import com.rcslabs.messaging.IMessage;
 import com.rcslabs.webcall.MessageType;
 
 public class CallEvent implements IFSMEvent<MessageType> {
@@ -19,7 +18,7 @@ public class CallEvent implements IFSMEvent<MessageType> {
         return originalMessage;
     }
 
-    public CallEvent(ITypedMessage<MessageType> msg){
+    public CallEvent(IMessage msg){
         this(msg.getType());
         this.originalMessage = msg;
     }

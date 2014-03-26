@@ -1,7 +1,7 @@
+import com.rcslabs.messaging.IMessageBroker;
+import com.rcslabs.messaging.RedisMessageBroker;
 import com.rcslabs.rcl.JainSipGlobalParams;
 import com.rcslabs.rcl.JainSipRclFactory;
-import com.rcslabs.redis.IMessageBroker;
-import com.rcslabs.redis.RedisMessageBroker;
 import com.rcslabs.webcall.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

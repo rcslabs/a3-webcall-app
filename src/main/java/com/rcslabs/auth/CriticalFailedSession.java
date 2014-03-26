@@ -2,7 +2,7 @@ package com.rcslabs.auth;
 
 
 import com.rcslabs.fsm.AbstractFSM;
-import com.rcslabs.webcall.AlenaMessage;
+import com.rcslabs.messaging.IMessage;
 
 public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionEvent> implements ISession{
 
@@ -11,11 +11,11 @@ public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionEv
     private final String clientId;
     private final String sessionId;
 
-    public CriticalFailedSession(AlenaMessage message) {
-        service = (String)message.get(AlenaMessage.PROP_SERVICE);
-        sender = (String)message.get(AlenaMessage.PROP_SENDER);
-        clientId = (String)message.get(AlenaMessage.PROP_CLIENT_ID);
-        sessionId = (message.has(AlenaMessage.PROP_SESSION_ID) ? (String)message.get(AlenaMessage.PROP_SESSION_ID) : null);
+    public CriticalFailedSession(IMessage message) {
+        service = (String)message.get(IMessage.PROP_SERVICE);
+        sender = (String)message.get(IMessage.PROP_SENDER);
+        clientId = (String)message.get(IMessage.PROP_CLIENT_ID);
+        sessionId = (message.has(IMessage.PROP_SESSION_ID) ? (String)message.get(IMessage.PROP_SESSION_ID) : null);
     }
 
     @Override

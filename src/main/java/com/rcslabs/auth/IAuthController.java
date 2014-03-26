@@ -1,7 +1,7 @@
 package com.rcslabs.auth;
 
+import com.rcslabs.messaging.IMessageBrokerDelegate;
 
-import com.rcslabs.redis.IMessageBrokerDelegate;
 
 public interface IAuthController extends IMessageBrokerDelegate {
 

@@ -1,8 +1,7 @@
 package com.rcslabs.media;
 
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.redis.IMessage;
-import com.rcslabs.webcall.AlenaMessage;
+import com.rcslabs.messaging.IMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,17 +17,17 @@ public class SIPMediaPoint extends MediaPoint{
 
     protected void onSdpOffererReceived(MediaEvent event){
         IMessage msg = event.getMessage().cloneWithSameType();
-        sdp.setOfferer((String)msg.get(AlenaMessage.PROP_SDP));
-        enterStateDelegate.onSdpOffererReceived(this, (AlenaMessage)msg);
+        sdp.setOfferer((String)msg.get(IMessage.PROP_SDP));
+        enterStateDelegate.onSdpOffererReceived(this, msg);
     }
 
     protected void onSdpAnswererReceived(MediaEvent event){
         IMessage msg = event.getMessage().cloneWithSameType();
-        sdp.setAnswerer((String) msg.get(AlenaMessage.PROP_SDP));
-        msg.set(AlenaMessage.PROP_CALL_ID,  callId);
-        msg.set(AlenaMessage.PROP_POINT_ID, pointId);
-        msg.set(AlenaMessage.PROP_PROFILE, profile);
-        enterStateDelegate.onSdpAnswererReceived(this, (AlenaMessage)msg);
+        sdp.setAnswerer((String) msg.get(IMessage.PROP_SDP));
+        msg.set(IMessage.PROP_CALL_ID,  callId);
+        msg.set(IMessage.PROP_POINT_ID, pointId);
+        msg.set(IMessage.PROP_PROFILE, profile);
+        enterStateDelegate.onSdpAnswererReceived(this, msg);
     }
 
     public String toString(){
