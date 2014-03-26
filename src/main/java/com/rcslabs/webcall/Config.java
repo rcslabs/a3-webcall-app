@@ -11,7 +11,7 @@ public class Config implements IConfig{
 
 	protected final static Logger log = LoggerFactory.getLogger(Config.class);
 
-	private IConfig firstHandler;
+	private AbstractConfigChainHandler firstHandler;
 
 	public Config(){
         Properties args = new Properties();
@@ -24,16 +24,20 @@ public class Config implements IConfig{
 		}
 
         // init chain handlers
-        firstHandler = new ArgsConfigChainHandler();
+        AbstractConfigChainHandler argsHandler = new ArgsConfigChainHandler();
         FileConfigChainHandler fileHandler = new FileConfigChainHandler();
+        DefaultsConfigChainHandler defaultsHandler = new DefaultsConfigChainHandler();
 		if(args.containsKey("config")){
             fileHandler.readFile(args.getProperty("config"));
 		}
-        DefaultsConfigChainHandler defaultsHandler = new DefaultsConfigChainHandler();
-        RedisConfigChainHandler redisHandler = new RedisConfigChainHandler(getMessagingHost(), getMessagingPort());
-
         // create chain
-        ((IConfigChainHandler)firstHandler).setNext(redisHandler);
+        argsHandler.setNext(fileHandler);
+        fileHandler.setNext(defaultsHandler);
+        this.firstHandler = argsHandler;
+
+        RedisConfigChainHandler redisHandler = new RedisConfigChainHandler(getMessagingHost(), getMessagingPort());
+        // create chain again :)
+        argsHandler.setNext(redisHandler);
         redisHandler.setNext(fileHandler);
         fileHandler.setNext(defaultsHandler);
 	}

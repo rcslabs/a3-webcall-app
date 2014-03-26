@@ -6,9 +6,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileReader;
 import java.io.IOException;
 
-/**
- * Created by sx on 06.03.14.
- */
 public class FileConfigChainHandler extends AbstractConfigChainHandler {
 
     protected final static Logger log = LoggerFactory.getLogger(FileConfigChainHandler.class);
