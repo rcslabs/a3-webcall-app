@@ -1,8 +1,8 @@
-package com.rcslabs.fsm;
+package com.rcslabs.a3.fsm;
 
 import org.slf4j.Logger;
 
-public abstract class AbstractFSM<S extends Enum, E extends IFSMEvent> implements IFSM<S, E>{
+public abstract class AbstractFSM<S extends Enum, E extends IFSMSignal> implements IFSM<S, E>{
 
     protected S state;
 

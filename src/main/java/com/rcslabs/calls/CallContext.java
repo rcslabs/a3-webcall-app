@@ -1,9 +1,11 @@
 package com.rcslabs.calls;
 
-import com.rcslabs.fsm.AbstractFSM;
-import com.rcslabs.media.IMediaContext;
+import com.rcslabs.a3.IApplication;
+import com.rcslabs.a3.fsm.AbstractFSM;
+import com.rcslabs.a3.rtc.ICallContext;
+import com.rcslabs.a3.rtc.ICallContextDelegate;
+import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.messaging.IMessage;
-import com.rcslabs.webcall.ICallApplication;
 import com.rcslabs.webcall.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> implements ICallContext {
+public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal> implements ICallContext {
 	
 	protected final static Logger log = LoggerFactory.getLogger(CallContext.class);
 
@@ -22,7 +24,7 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> 
     private String sipId;
     private boolean voice;
     private boolean video;
-    private ICallApplication app;
+    private IApplication app;
     private IMediaContext mediaCtx;
     private Map<String, Object> data;
     private ICallContextDelegate stateChangedDelegate;
@@ -73,7 +75,7 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> 
     }
 
     @Override
-    public void onEvent(CallEvent event)
+    public void onEvent(CallSignal event)
     {
         switch(this.state)
         {
@@ -138,7 +140,7 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallEvent> 
     }
 
     @Override
-    protected void setState(CallState state, CallEvent event) {
+    protected void setState(CallState state, CallSignal event) {
         super.setState(state, event);
         event.getMessage().set(IMessage.PROP_CALL_ID, callId); // only for START_CALL
 

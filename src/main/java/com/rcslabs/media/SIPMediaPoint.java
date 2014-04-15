@@ -15,13 +15,13 @@ public class SIPMediaPoint extends MediaPoint{
         super.setLogger(log);
     }
 
-    protected void onSdpOffererReceived(MediaEvent event){
+    protected void onSdpOffererReceived(MediaSignal event){
         IMessage msg = event.getMessage().cloneWithSameType();
         sdp.setOfferer((String)msg.get(IMessage.PROP_SDP));
         enterStateDelegate.onSdpOffererReceived(this, msg);
     }
 
-    protected void onSdpAnswererReceived(MediaEvent event){
+    protected void onSdpAnswererReceived(MediaSignal event){
         IMessage msg = event.getMessage().cloneWithSameType();
         sdp.setAnswerer((String) msg.get(IMessage.PROP_SDP));
         msg.set(IMessage.PROP_CALL_ID,  callId);

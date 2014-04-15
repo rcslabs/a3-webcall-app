@@ -1,5 +1,8 @@
 package com.rcslabs.auth;
 
+import com.rcslabs.a3.auth.IAuthController;
+import com.rcslabs.a3.auth.IAuthControllerDelegate;
+import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.messaging.IMessageBroker;
 import com.rcslabs.messaging.IMessageBrokerDelegate;
@@ -25,7 +28,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SipAuthController implements IAuthController, IAuthControllerDelegate, 
+public class SipAuthController implements IAuthController, IAuthControllerDelegate,
 	IConnectionListener, IMessageBrokerDelegate, ITelephonyServiceListener {
 	
 	protected final static Logger log = LoggerFactory.getLogger(SipAuthController.class);
@@ -154,7 +157,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
         if(null == session){
             log.error("Session not found for id=" + event.getConnection().getId());
         }else{
-            session.onEvent(new SessionEvent(MessageType.START_SESSION));
+            session.onEvent(new SessionSignal(MessageType.START_SESSION));
         }
     }
 
@@ -303,7 +306,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 		
 	public void onSessionStarted(ISession session) {
 		log.info("onSessionStarted " + session);
-        session.onEvent(new SessionEvent(MessageType.SESSION_STARTED));
+        session.onEvent(new SessionSignal(MessageType.SESSION_STARTED));
 		IMessage message = new Message(MessageType.SESSION_STARTED);
         message.set(IMessage.PROP_SERVICE, session.getService());
 		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
@@ -313,7 +316,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 
 	public void onSessionFailed(ISession session, String reason) {
 		log.info("onSessionFailed " + session);
-        session.onEvent(new SessionEvent(MessageType.SESSION_FAILED));
+        session.onEvent(new SessionSignal(MessageType.SESSION_FAILED));
 		IMessage message = new Message(MessageType.SESSION_FAILED);
         message.set(IMessage.PROP_SERVICE, session.getService());
 		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
@@ -324,7 +327,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 
 	public void onSessionClosed(ISession session) {
 		log.info("onSessionClosed " + session);
-        session.onEvent(new SessionEvent(MessageType.SESSION_CLOSED));
+        session.onEvent(new SessionSignal(MessageType.SESSION_CLOSED));
 		IMessage message = new Message(MessageType.SESSION_CLOSED);
         message.set(IMessage.PROP_SERVICE, session.getService());
 		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());

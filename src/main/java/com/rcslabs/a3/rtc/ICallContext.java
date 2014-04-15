@@ -1,9 +1,9 @@
-package com.rcslabs.calls;
+package com.rcslabs.a3.rtc;
 
-import com.rcslabs.fsm.IFSM;
-import com.rcslabs.media.IMediaContext;
+import com.rcslabs.a3.fsm.IFSM;
+import com.rcslabs.calls.CallSignal;
 
-public interface ICallContext extends IFSM<ICallContext.CallState, CallEvent>{
+public interface ICallContext extends IFSM<ICallContext.CallState, CallSignal>{
 
     void initWith(ICallContextDelegate stateChangedDelegate);
     IMediaContext getMediaContext();

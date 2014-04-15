@@ -24,7 +24,7 @@ public class WebcallApp{
         IConfig config = null;
 
         try{
-            config = new Config();
+            config = new AppConfig();
 			log.info(config.toString());
 						
 			broker = new RedisMessageBroker(config.getMessagingHost(), config.getMessagingPort());

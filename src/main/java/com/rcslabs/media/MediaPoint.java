@@ -1,17 +1,20 @@
 package com.rcslabs.media;
 
+import com.rcslabs.a3.IApplication;
+import com.rcslabs.a3.rtc.IMediaContext;
+import com.rcslabs.a3.rtc.IMediaPoint;
+import com.rcslabs.a3.rtc.IMediaPointDelegate;
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.fsm.AbstractFSM;
+import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 import com.rcslabs.rcl.telephony.entity.SdpObject;
-import com.rcslabs.webcall.ICallApplication;
 import com.rcslabs.webcall.MessageType;
 
 import java.util.UUID;
 
-public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState, MediaEvent> implements IMediaPoint{
+public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState, MediaSignal> implements IMediaPoint{
 
-    protected ICallApplication app;
+    protected IApplication app;
     protected String pointId;
     protected String callId;
     protected String sessionId;
@@ -23,7 +26,7 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
     protected IMediaPointDelegate enterStateDelegate;
     protected IMediaContext mediaContext;
 
-    public ICallApplication getApp() {
+    public IApplication getApp() {
         return app;
     }
 
@@ -98,7 +101,7 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
     }
 
     @Override
-    public void onEvent(MediaEvent event) {
+    public void onEvent(MediaSignal event) {
         switch(this.state)
         {
             case INIT:
@@ -164,7 +167,7 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
     }
 
     @Override
-    protected void setState(MediaPointState state, MediaEvent event)
+    protected void setState(MediaPointState state, MediaSignal event)
     {
         super.setState(state, event);
 
@@ -183,7 +186,7 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
         }
     }
 
-    abstract protected void onSdpOffererReceived(MediaEvent event);
-    abstract protected void onSdpAnswererReceived(MediaEvent event);
+    abstract protected void onSdpOffererReceived(MediaSignal event);
+    abstract protected void onSdpAnswererReceived(MediaSignal event);
 
 }

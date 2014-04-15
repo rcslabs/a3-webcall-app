@@ -1,6 +1,6 @@
 package com.rcslabs.webcall;
 
-import com.rcslabs.calls.ICallContext;
+import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.messaging.IMessageBroker;
 import com.rcslabs.messaging.Message;

@@ -1,4 +1,4 @@
-package com.rcslabs.config;
+package com.rcslabs.a3.config;
 
 /**
  * Created by sx on 06.03.14.

@@ -1,10 +1,10 @@
-package com.rcslabs.media;
+package com.rcslabs.calls;
 
-import com.rcslabs.fsm.IFSMEvent;
+import com.rcslabs.a3.fsm.IFSMSignal;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.webcall.MessageType;
 
-public class MediaEvent implements IFSMEvent<MessageType> {
+public class CallSignal implements IFSMSignal<MessageType> {
 
     private MessageType type;
 
@@ -18,12 +18,12 @@ public class MediaEvent implements IFSMEvent<MessageType> {
         return originalMessage;
     }
 
-    public MediaEvent(IMessage msg){
+    public CallSignal(IMessage msg){
         this(msg.getType());
         this.originalMessage = msg;
     }
 
-    public MediaEvent(MessageType type){
+    public CallSignal(MessageType type){
         this.type = type;
     }
 }

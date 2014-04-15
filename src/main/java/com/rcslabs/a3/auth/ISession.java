@@ -1,8 +1,9 @@
-package com.rcslabs.auth;
+package com.rcslabs.a3.auth;
 
-import com.rcslabs.fsm.IFSM;
+import com.rcslabs.auth.SessionSignal;
+import com.rcslabs.a3.fsm.IFSM;
 
-public interface ISession  extends IFSM<ISession.State, SessionEvent> {
+public interface ISession  extends IFSM<ISession.State, SessionSignal> {
 	
 	public enum State{
         INIT, CONNECTING, CONNECTED, FAILED, CLOSED

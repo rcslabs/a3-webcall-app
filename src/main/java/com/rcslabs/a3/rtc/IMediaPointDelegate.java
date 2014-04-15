@@ -1,4 +1,4 @@
-package com.rcslabs.media;
+package com.rcslabs.a3.rtc;
 
 
 import com.rcslabs.messaging.IMessage;

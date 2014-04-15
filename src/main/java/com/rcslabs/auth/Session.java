@@ -1,13 +1,14 @@
 package com.rcslabs.auth;
 
-import com.rcslabs.fsm.AbstractFSM;
+import com.rcslabs.a3.auth.ISession;
+import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.webcall.MessageType;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Session extends AbstractFSM<ISession.State, SessionEvent> implements ISession{
+public class Session extends AbstractFSM<ISession.State, SessionSignal> implements ISession{
 		
 	private final String username;
 	private final String password;
@@ -63,7 +64,7 @@ public class Session extends AbstractFSM<ISession.State, SessionEvent> implement
 	}
 
     @Override
-    public void onEvent(SessionEvent event) {
+    public void onEvent(SessionSignal event) {
         switch(this.state) {
             case INIT:
                 if(event.getType() == MessageType.START_SESSION){

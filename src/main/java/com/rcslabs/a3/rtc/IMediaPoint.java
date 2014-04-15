@@ -1,10 +1,11 @@
-package com.rcslabs.media;
+package com.rcslabs.a3.rtc;
 
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.fsm.IFSM;
+import com.rcslabs.a3.fsm.IFSM;
+import com.rcslabs.media.MediaSignal;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 
-public interface IMediaPoint extends IFSM<IMediaPoint.MediaPointState, MediaEvent>
+public interface IMediaPoint extends IFSM<IMediaPoint.MediaPointState, MediaSignal>
 {
     void initWith(IMediaPointDelegate stateChangedDelegate);
     IMediaContext getMediaContext();

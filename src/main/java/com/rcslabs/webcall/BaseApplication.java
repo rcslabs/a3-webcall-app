@@ -1,5 +1,9 @@
 package com.rcslabs.webcall;
 
+import com.rcslabs.a3.auth.IAuthController;
+import com.rcslabs.a3.auth.IAuthControllerDelegate;
+import com.rcslabs.a3.auth.ISession;
+import com.rcslabs.a3.rtc.*;
 import com.rcslabs.auth.*;
 import com.rcslabs.calls.*;
 import com.rcslabs.media.*;
@@ -102,12 +106,12 @@ public class BaseApplication implements
                     createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
                             new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
                     );
-                    ctx.onEvent(new CallEvent(message));
+                    ctx.onEvent(new CallSignal(message));
                     break;
 
                 case INCOMING_CALL:
                     ctx = createIncomingCallContext(message);
-                    ctx.onEvent(new CallEvent(message));
+                    ctx.onEvent(new CallSignal(message));
                     break;
 
                 case CALL_STARTING:
@@ -117,7 +121,7 @@ public class BaseApplication implements
                     callId = (String) message.get(IMessage.PROP_CALL_ID);
                     ctx = findCallContext(callId);
                     if(null != ctx) {
-                        ctx.onEvent(new CallEvent(message));
+                        ctx.onEvent(new CallSignal(message));
                     }else{
                         log.warn("Call " + callId + " not found");
                     }
@@ -128,7 +132,7 @@ public class BaseApplication implements
                     callId = (String) message.get(IMessage.PROP_CALL_ID);
                     ctx = findCallContext(callId);
                     if(null != ctx) {
-                        ctx.onEvent(new CallEvent(message));
+                        ctx.onEvent(new CallSignal(message));
                     }else{
                         log.warn("Call " + callId + " not found");
                     }
@@ -157,7 +161,7 @@ public class BaseApplication implements
                     String pointId = (String) message.get(IMessage.PROP_POINT_ID);
                     IMediaPoint mp = findMediaPoint(pointId);
                     if(null != mp){
-                        mp.onEvent(new MediaEvent(message));
+                        mp.onEvent(new MediaSignal(message));
                     }else{
                         log.warn("MediaPoint " + pointId + " not found");
                     }
@@ -382,7 +386,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
-        mp.onEvent(new MediaEvent(MessageType.JOIN_OK));
+        mp.onEvent(new MediaSignal(MessageType.JOIN_OK));
     }
 
     @Override
@@ -397,7 +401,7 @@ public class BaseApplication implements
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
-        mp.onEvent(new MediaEvent(MessageType.UNJOIN_OK));
+        mp.onEvent(new MediaSignal(MessageType.UNJOIN_OK));
     }
 
     @Override
@@ -506,7 +510,7 @@ public class BaseApplication implements
             if(p.getCallId().equals(message.get(IMessage.PROP_CALL_ID))
                     && p.getState() == IMediaPoint.MediaPointState.OFFERER_RECEIVED){
                 // ok, this is media point waiting SDP answer?
-                p.onEvent(new MediaEvent(sipSdpAnswerMessage)); break;
+                p.onEvent(new MediaSignal(sipSdpAnswerMessage)); break;
             }
         }
     }

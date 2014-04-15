@@ -1,10 +1,11 @@
 package com.rcslabs.auth;
 
 
-import com.rcslabs.fsm.AbstractFSM;
+import com.rcslabs.a3.auth.ISession;
+import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.messaging.IMessage;
 
-public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionEvent> implements ISession{
+public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSignal> implements ISession{
 
     private final String service;
     private final String sender;
@@ -58,5 +59,5 @@ public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionEv
     }
 
     @Override
-    public void onEvent(SessionEvent event) { /* do nothing */ }
+    public void onEvent(SessionSignal event) { /* do nothing */ }
 }

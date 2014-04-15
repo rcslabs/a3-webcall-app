@@ -1,5 +1,6 @@
 package com.rcslabs.calls;
 
+import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.messaging.Message;
 import com.rcslabs.rcl.core.entity.ErrorInfo;
@@ -36,7 +37,7 @@ public class JainSipCallListener implements ICallListener {
             message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
             message.set(IMessage.PROP_STAGE, event.getStage().toString());
             message.set(IMessage.PROP_SDP, ((ICallParams)event.getCall()).getSdpObject().getOfferer());
-            ctx.onEvent(new CallEvent(message));
+            ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
         }
@@ -51,7 +52,7 @@ public class JainSipCallListener implements ICallListener {
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
             message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
             message.set(IMessage.PROP_SDP, ((ICallParams)event.getCall()).getSdpObject().getAnswerer());
-            ctx.onEvent(new CallEvent(message));
+            ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
         }
@@ -65,7 +66,7 @@ public class JainSipCallListener implements ICallListener {
         if(null != ctx){
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
             message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            ctx.onEvent(new CallEvent(message));
+            ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
         }
@@ -81,7 +82,7 @@ public class JainSipCallListener implements ICallListener {
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
             message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
             message.set(IMessage.PROP_REASON, event.getRejectReason().toString());
-            ctx.onEvent(new CallEvent(message));
+            ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
         }
@@ -113,7 +114,7 @@ public class JainSipCallListener implements ICallListener {
                 message.set(IMessage.PROP_REASON, e.getErrorCode() + " : " + e.getErrorText());
             }
 
-            ctx.onEvent(new CallEvent(message));
+            ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call" + event.getCall().getId() + " not found");
         }

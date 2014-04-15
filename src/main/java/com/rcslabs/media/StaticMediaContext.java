@@ -1,5 +1,6 @@
 package com.rcslabs.media;
 
+import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.webcall.IConfig;
 
 import java.util.HashSet;

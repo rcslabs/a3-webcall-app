@@ -1,4 +1,4 @@
-package com.rcslabs.auth;
+package com.rcslabs.a3.auth;
 
 import com.rcslabs.messaging.IMessageBrokerDelegate;
 

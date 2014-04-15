@@ -1,25 +1,15 @@
 package com.rcslabs.webcall;
 
-import com.rcslabs.auth.IAuthController;
+import com.rcslabs.a3.IApplication;
+import com.rcslabs.a3.rtc.ICallContext;
+import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.calls.ICallContext;
-import com.rcslabs.media.IMediaPoint;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.messaging.IMessageBrokerDelegate;
 
 import java.util.List;
 
-public interface ICallApplication extends IMessageBrokerDelegate{
-
-    boolean ready();
-
-	IAuthController getAuthController();
-
-	IConfig getConfig();
-
-	String getChannelName();
-
-    void beforeStartSession(IMessage message) throws Exception;
+public interface ICallApplication extends IApplication, IMessageBrokerDelegate{
 
     ICallContext createCallContext(IMessage message);
 

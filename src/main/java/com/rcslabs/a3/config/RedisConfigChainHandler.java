@@ -1,4 +1,4 @@
-package com.rcslabs.config;
+package com.rcslabs.a3.config;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
