@@ -1,9 +1,9 @@
 import com.rcslabs.auth.AuthMessage;
 import com.rcslabs.calls.CallMessage;
 import com.rcslabs.media.MediaMessage;
-import com.rcslabs.messaging.IMessageBroker;
-import com.rcslabs.messaging.MessageMarshaller;
-import com.rcslabs.messaging.RedisMessageBroker;
+import com.rcslabs.a3.messaging.IMessageBroker;
+import com.rcslabs.a3.messaging.MessageMarshaller;
+import com.rcslabs.a3.messaging.RedisMessageBroker;
 import com.rcslabs.rcl.JainSipGlobalParams;
 import com.rcslabs.rcl.JainSipRclFactory;
 import com.rcslabs.webcall.*;

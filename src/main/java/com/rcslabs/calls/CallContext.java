@@ -5,7 +5,7 @@ import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

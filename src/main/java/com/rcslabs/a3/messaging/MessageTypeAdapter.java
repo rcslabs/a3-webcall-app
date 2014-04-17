@@ -1,4 +1,4 @@
-package com.rcslabs.messaging;
+package com.rcslabs.a3.messaging;
 
 import com.google.gson.*;
 import org.slf4j.Logger;

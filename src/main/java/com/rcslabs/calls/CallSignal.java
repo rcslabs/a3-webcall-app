@@ -1,7 +1,7 @@
 package com.rcslabs.calls;
 
 import com.rcslabs.a3.fsm.IFSMSignal;
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 
 public class CallSignal implements IFSMSignal<CallMessage.Type> {
 

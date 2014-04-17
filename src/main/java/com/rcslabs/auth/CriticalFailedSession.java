@@ -3,7 +3,7 @@ package com.rcslabs.auth;
 
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.fsm.AbstractFSM;
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 
 public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSignal> implements ISession{
 

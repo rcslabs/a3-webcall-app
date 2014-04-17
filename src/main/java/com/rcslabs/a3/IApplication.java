@@ -1,7 +1,7 @@
 package com.rcslabs.a3;
 
 import com.rcslabs.a3.auth.IAuthController;
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.webcall.IConfig;
 
 /**

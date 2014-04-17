@@ -1,4 +1,4 @@
-package com.rcslabs.messaging;
+package com.rcslabs.a3.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

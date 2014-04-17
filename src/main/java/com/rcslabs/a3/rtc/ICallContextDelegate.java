@@ -1,6 +1,6 @@
 package com.rcslabs.a3.rtc;
 
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 
 public interface ICallContextDelegate {
     void onCallStarting(ICallContext ctx, IMessage message);

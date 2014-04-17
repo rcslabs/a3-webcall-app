@@ -1,6 +1,6 @@
 package com.rcslabs.calls;
 
-import com.rcslabs.messaging.Message;
+import com.rcslabs.a3.messaging.Message;
 
 /**
  * Created by sx on 15.04.14.

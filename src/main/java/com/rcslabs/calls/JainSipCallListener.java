@@ -1,7 +1,7 @@
 package com.rcslabs.calls;
 
 import com.rcslabs.a3.rtc.ICallContext;
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.rcl.core.entity.ErrorInfo;
 import com.rcslabs.rcl.telephony.ICallListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;

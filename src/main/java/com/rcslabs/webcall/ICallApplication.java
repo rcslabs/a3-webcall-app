@@ -4,8 +4,8 @@ import com.rcslabs.a3.IApplication;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.messaging.IMessage;
-import com.rcslabs.messaging.IMessageBrokerDelegate;
+import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 
 import java.util.List;
 

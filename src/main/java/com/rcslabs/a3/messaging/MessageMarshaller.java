@@ -1,11 +1,9 @@
-package com.rcslabs.messaging;
+package com.rcslabs.a3.messaging;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Type;
 
 /**
  * Created by sx on 15.04.14.

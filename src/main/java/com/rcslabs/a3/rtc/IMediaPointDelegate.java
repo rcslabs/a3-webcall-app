@@ -1,7 +1,7 @@
 package com.rcslabs.a3.rtc;
 
 
-import com.rcslabs.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessage;
 
 public interface IMediaPointDelegate {
     void onSdpOffererReceived(IMediaPoint mp, IMessage message);

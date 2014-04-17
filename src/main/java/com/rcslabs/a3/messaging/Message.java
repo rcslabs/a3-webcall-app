@@ -1,4 +1,4 @@
-package com.rcslabs.messaging;
+package com.rcslabs.a3.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public abstract class Message<T extends Enum> implements IMessage<T> {
 
 	@Override
 	public String getClientChannel(){
-		return (null != get(IMessage.PROP_SESSION_ID) ? "sid:"+get(IMessage.PROP_SESSION_ID) : null);
+		return (null != get(PROP_SESSION_ID) ? "sid:"+get(PROP_SESSION_ID) : null);
 	}
 	
 	@Override	
@@ -60,7 +60,7 @@ public abstract class Message<T extends Enum> implements IMessage<T> {
 	public String toString() {
 		String s = "Message [type=" + type;
 		for(String key : data.keySet()){
-			if(IMessage.PROP_SDP.equals(key)){ s += ", sdp=..."; continue; }
+			if(PROP_SDP.equals(key)){ s += ", sdp=..."; continue; }
 			if("type".equals(key)){ continue; }
 			if("password".equals(key)){ continue; }
 			s += (", " + key + "=" + data.get(key));

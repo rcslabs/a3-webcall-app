@@ -1,4 +1,4 @@
-package com.rcslabs.messaging;
+package com.rcslabs.a3.messaging;
 
 public interface IMessageBroker {
 
