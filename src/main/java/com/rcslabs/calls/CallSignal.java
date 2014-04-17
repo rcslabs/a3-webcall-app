@@ -2,15 +2,14 @@ package com.rcslabs.calls;
 
 import com.rcslabs.a3.fsm.IFSMSignal;
 import com.rcslabs.messaging.IMessage;
-import com.rcslabs.webcall.MessageType;
 
-public class CallSignal implements IFSMSignal<MessageType> {
+public class CallSignal implements IFSMSignal<CallMessage.Type> {
 
-    private MessageType type;
+    private CallMessage.Type type;
 
     private IMessage originalMessage;
 
-    public MessageType getType(){
+    public CallMessage.Type getType(){
         return type;
     }
 
@@ -18,12 +17,12 @@ public class CallSignal implements IFSMSignal<MessageType> {
         return originalMessage;
     }
 
-    public CallSignal(IMessage msg){
+    public CallSignal(CallMessage msg){
         this(msg.getType());
         this.originalMessage = msg;
     }
 
-    public CallSignal(MessageType type){
+    public CallSignal(CallMessage.Type type){
         this.type = type;
     }
 }

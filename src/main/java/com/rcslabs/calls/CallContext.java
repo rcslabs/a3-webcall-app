@@ -6,7 +6,6 @@ import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.messaging.IMessage;
-import com.rcslabs.webcall.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,9 +79,9 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
         switch(this.state)
         {
             case INIT:
-                if(event.getType() == MessageType.START_CALL) {
+                if(event.getType() == CallMessage.Type.START_CALL) {
                     setState(CallState.STARTING, event);
-                } else if(event.getType() == MessageType.INCOMING_CALL) {
+                } else if(event.getType() == CallMessage.Type.INCOMING_CALL) {
                     setState(CallState.STARTING_INCOMING, event);
                 }else {
                     unhandledEvent(event);
@@ -90,15 +89,15 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
                 break;
 
             case STARTING:
-                if(event.getType() == MessageType.CALL_STARTED) {
+                if(event.getType() == CallMessage.Type.CALL_STARTED) {
                     setState(CallState.STARTED, event);
-                } else if(event.getType() == MessageType.CALL_STARTING) {
+                } else if(event.getType() == CallMessage.Type.CALL_STARTING) {
                     setState(CallState.STARTING, event);
-                } else if(event.getType() == MessageType.CALL_FAILED) {
+                } else if(event.getType() == CallMessage.Type.CALL_FAILED) {
                     setState(CallState.FAILED, event);
-                } else if(event.getType() == MessageType.CALL_FINISHED) {
+                } else if(event.getType() == CallMessage.Type.CALL_FINISHED) {
                     setState(CallState.FINISHED, event);
-                } else if(event.getType() == MessageType.HANGUP_CALL) {
+                } else if(event.getType() == CallMessage.Type.HANGUP_CALL) {
                     setState(CallState.FINISHED, event);
                 } else {
                     unhandledEvent(event);
@@ -106,17 +105,17 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
                 break;
 
             case STARTING_INCOMING:
-                if(event.getType() == MessageType.CALL_STARTED) {
+                if(event.getType() == CallMessage.Type.CALL_STARTED) {
                     setState(CallState.STARTED, event);
-                } else if(event.getType() == MessageType.ACCEPT_CALL) {
+                } else if(event.getType() == CallMessage.Type.ACCEPT_CALL) {
                     //setState(CallState.STARTED, event);
-                } else if(event.getType() == MessageType.REJECT_CALL) {
+                } else if(event.getType() == CallMessage.Type.REJECT_CALL) {
                     setState(CallState.FINISHED, event);
-                } else if(event.getType() == MessageType.CALL_FAILED) {
+                } else if(event.getType() == CallMessage.Type.CALL_FAILED) {
                     setState(CallState.FAILED, event);
-                } else if(event.getType() == MessageType.CALL_FINISHED) {
+                } else if(event.getType() == CallMessage.Type.CALL_FINISHED) {
                     setState(CallState.FINISHED, event);
-                } else if(event.getType() == MessageType.HANGUP_CALL) {
+                } else if(event.getType() == CallMessage.Type.HANGUP_CALL) {
                     setState(CallState.FINISHED, event);
                 } else {
                     unhandledEvent(event);
@@ -124,9 +123,9 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
                 break;
 
             case STARTED:
-                if(event.getType() == MessageType.CALL_FINISHED) {
+                if(event.getType() == CallMessage.Type.CALL_FINISHED) {
                     setState(CallState.FINISHED, event);
-                } else if(event.getType() == MessageType.HANGUP_CALL) {
+                } else if(event.getType() == CallMessage.Type.HANGUP_CALL) {
                     setState(CallState.FINISHED, event);
                 } else
                     unhandledEvent(event);

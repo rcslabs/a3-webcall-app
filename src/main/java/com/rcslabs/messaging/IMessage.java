@@ -1,10 +1,8 @@
 package com.rcslabs.messaging;
 
-import com.rcslabs.webcall.MessageType;
-
 import java.util.Map;
 
-public interface IMessage {
+public interface IMessage<T extends Enum> {
 
     static final String PROP_SESSION_ID	= "sessionId";
     static final String PROP_CLIENT_ID  = "clientId";
@@ -27,11 +25,11 @@ public interface IMessage {
     static final String PROP_DTMF       = "dtmf";
     static final String PROP_TIME_BEFORE_FINISH = "timeBeforeFinish";
 
-	IMessage cloneWithAnyType(MessageType type);
+	IMessage cloneWithAnyType(T type);
 	
 	IMessage cloneWithSameType();
 	
-    MessageType getType();
+    T getType();
 
     Map<String, Object> getData();
 

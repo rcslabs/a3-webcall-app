@@ -1,17 +1,16 @@
 package com.rcslabs.auth;
 
 import com.rcslabs.a3.fsm.IFSMSignal;
-import com.rcslabs.webcall.MessageType;
 
-public class SessionSignal implements IFSMSignal<MessageType> {
+public class SessionSignal implements IFSMSignal<AuthMessage.Type> {
 
-    private MessageType type;
+    private AuthMessage.Type type;
 
-    public MessageType getType(){
+    public AuthMessage.Type getType(){
         return type;
     }
 
-    public SessionSignal(MessageType type){
+    public SessionSignal(AuthMessage.Type type){
         this.type = type;
     }
 }

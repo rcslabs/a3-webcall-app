@@ -1,25 +1,18 @@
 package com.rcslabs.messaging;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.rcslabs.webcall.MessageType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class Message implements IMessage {
-	
-	private static Gson gson; 
+public abstract class Message<T extends Enum> implements IMessage<T> {
 
-	static {
-		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer());
-		gsonBuilder.registerTypeAdapter(Message.class, new MessageSerializer());
-		gson = gsonBuilder.create();		
-	}
-	
-	private String service;
-	private MessageType type;
+    protected final static Logger log = LoggerFactory.getLogger(Message.class);
+
+	private T type;
 	
 	private Map<String, Object> data;
 	
@@ -27,24 +20,19 @@ public class Message implements IMessage {
 		return data;
 	}
 
-    public Message(String service, MessageType type) {
-        this(type);
-        this.service = service;
-    }
-
-	public Message(MessageType type) {
+	public Message(T type) {
 		super();
 		this.type = type; 
 		this.data = new HashMap<String, Object>();
 	}
-	
+
 	@Override
 	public String getClientChannel(){
 		return (null != get(IMessage.PROP_SESSION_ID) ? "sid:"+get(IMessage.PROP_SESSION_ID) : null);
 	}
 	
 	@Override	
-	public MessageType getType(){
+	public T getType(){
 		return type;
 	}
 	
@@ -67,20 +55,12 @@ public class Message implements IMessage {
 	public void delete(String key) {
 		data.remove(key);
 	}
-	
-	public static IMessage fromJson(String value){
-		return gson.fromJson(value, Message.class);
-	}
-	
-	public static String toJson(IMessage value){
-		return gson.toJson(value);
-	}
 
 	@Override
 	public String toString() {
 		String s = "Message [type=" + type;
 		for(String key : data.keySet()){
-			if(IMessage.PROP_SDP.equals(key)){ s += ", sdp=SKIPPED"; continue; }
+			if(IMessage.PROP_SDP.equals(key)){ s += ", sdp=..."; continue; }
 			if("type".equals(key)){ continue; }
 			if("password".equals(key)){ continue; }
 			s += (", " + key + "=" + data.get(key));
@@ -92,12 +72,31 @@ public class Message implements IMessage {
 	public IMessage cloneWithSameType(){
 		return cloneWithAnyType(type);
 	}
-	
-	public IMessage cloneWithAnyType(MessageType type){
-		IMessage aMessage = new Message(service, type);
-		for(String key : data.keySet()){
-			aMessage.set(key, data.get(key));
-		}
-		return aMessage;
+
+    private static final Map<String, Constructor<?>> reflectionCache = new ConcurrentHashMap<String, Constructor<?>>();
+
+	public IMessage cloneWithAnyType(T type){
+        try {
+            String typeName = type.getClass().getName();
+            Constructor<?> cnst = null;
+
+            if(reflectionCache.containsKey(typeName)){
+                cnst = reflectionCache.get(typeName);
+            } else {
+                String[] classNameAndType = typeName.split("\\$");
+                Class<?> clazz = Class.forName(classNameAndType[0]);
+                cnst = clazz.getConstructor(type.getClass());
+                reflectionCache.put(typeName, cnst);
+            }
+
+            IMessage aMessage = (IMessage)cnst.newInstance(type);
+            for(String key : data.keySet()){
+                aMessage.set(key, data.get(key));
+            }
+            return aMessage;
+        } catch (Exception e) {
+            log.error("Error on message clone", e);
+            return null;
+        }
 	}
 }

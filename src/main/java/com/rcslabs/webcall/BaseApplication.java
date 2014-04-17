@@ -4,10 +4,15 @@ import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.IAuthControllerDelegate;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.rtc.*;
-import com.rcslabs.auth.*;
+import com.rcslabs.auth.AuthMessage;
+import com.rcslabs.auth.CriticalFailedSession;
+import com.rcslabs.auth.SipAuthController;
 import com.rcslabs.calls.*;
 import com.rcslabs.media.*;
-import com.rcslabs.messaging.*;
+import com.rcslabs.messaging.IMessage;
+import com.rcslabs.messaging.IMessageBroker;
+import com.rcslabs.messaging.IMessageBrokerDelegate;
+import com.rcslabs.messaging.RedisMessageBroker;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.exception.ServiceNotEnabledException;
 import com.rcslabs.rcl.telephony.ICall;
@@ -62,12 +67,30 @@ public class BaseApplication implements
         return true;
     }
 
+    @Override
+    public void onMessageReceived(String channel, IMessage message)
+    {
+        try {
+            validateMessage(message);
+            if(message.getType() instanceof AuthMessage.Type)
+                handleAuthMessage(channel, (AuthMessage)message);
+            else if(message.getType() instanceof CallMessage.Type)
+                handleCallMessage(channel, (CallMessage) message);
+            else if(message.getType() instanceof MediaMessage.Type)
+                handleMediaMessage(channel, (MediaMessage)message);
+            else
+                log.warn("Unhandled message " + message.getType());
+        } catch (Exception e) {
+            handleOnMessageException(message, e);
+        }
+    }
+
     protected void validateMessage(IMessage message) throws Exception
     {
-        if(message.getType() == MessageType.START_SESSION){ return; }
+        if(message.getType() == AuthMessage.Type.START_SESSION){ return; }
 
         // all messages except START_SESSION must contains parameter "sessionId"
-        // validate it and throw Exception unsuccessfully
+        // validate it and throws an Exception unsuccessfully
 
         if(!message.has(IMessage.PROP_SESSION_ID)){
             throw new Exception("Skip the message without sessionId " + message);
@@ -80,99 +103,100 @@ public class BaseApplication implements
         }
     }
 
-
-    @Override
-    public void onMessageReceived(String channel, IMessage message)
+    protected void handleAuthMessage(String channel, AuthMessage message)
+            throws Exception
     {
-        try {
-            validateMessage(message);
+        switch (message.getType()) {
+            // auth messages
+            case START_SESSION:
+                beforeStartSession(message);
+            case CLOSE_SESSION:
+                authController.onMessageReceived(channel, message);
+                break;
+        }
+    }
 
-            ICallContext ctx;
-            String callId;
+    protected void handleCallMessage(String channel, CallMessage message)
+            throws Exception
+    {
+        ICallContext ctx;
+        String callId;
 
-            switch (message.getType())
-            {
-                // auth messages
-                case START_SESSION:
-                    beforeStartSession(message);
-                case CLOSE_SESSION:
-                    authController.onMessageReceived(channel, message);
-                    break;
+        switch (message.getType())
+        {
+            // calls messages
+            case START_CALL:
+                ctx = createCallContext(message);
+                // create first WRTC media point
+                createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
+                        new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
+                );
+                ctx.onEvent(new CallSignal(message));
+                break;
 
-                // calls messages
-                case START_CALL:
-                    ctx = createCallContext(message);
-                    // create first WRTC media point
-                    createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
-                            new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
-                    );
+            case INCOMING_CALL:
+                ctx = createIncomingCallContext(message);
+                ctx.onEvent(new CallSignal(message));
+                break;
+
+            case CALL_STARTING:
+            case CALL_STARTED:
+            case CALL_FINISHED:
+            case HANGUP_CALL:
+                callId = (String) message.get(IMessage.PROP_CALL_ID);
+                ctx = findCallContext(callId);
+                if(null != ctx) {
                     ctx.onEvent(new CallSignal(message));
-                    break;
+                }else{
+                    log.warn("Call " + callId + " not found");
+                }
+                break;
 
-                case INCOMING_CALL:
-                    ctx = createIncomingCallContext(message);
+            case ACCEPT_CALL:
+                // TODO: case REJECT_CALL:
+                callId = (String) message.get(IMessage.PROP_CALL_ID);
+                ctx = findCallContext(callId);
+                if(null != ctx) {
                     ctx.onEvent(new CallSignal(message));
-                    break;
+                }else{
+                    log.warn("Call " + callId + " not found");
+                }
+                // create WRTC media point (anyway) for abonent B at first
+                createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
+                        new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
+                );
+                break;
 
-                case CALL_STARTING:
-                case CALL_STARTED:
-                case CALL_FINISHED:
-                case HANGUP_CALL:
-                    callId = (String) message.get(IMessage.PROP_CALL_ID);
-                    ctx = findCallContext(callId);
-                    if(null != ctx) {
-                        ctx.onEvent(new CallSignal(message));
-                    }else{
-                        log.warn("Call " + callId + " not found");
-                    }
-                    break;
+            case SEND_DTMF:
+                sendDTMF((String) message.get(IMessage.PROP_CALL_ID), (String) message.get(IMessage.PROP_DTMF));
+                break;
+        }
+    }
 
-                case ACCEPT_CALL:
-                    // TODO: case REJECT_CALL:
-                    callId = (String) message.get(IMessage.PROP_CALL_ID);
-                    ctx = findCallContext(callId);
-                    if(null != ctx) {
-                        ctx.onEvent(new CallSignal(message));
-                    }else{
-                        log.warn("Call " + callId + " not found");
-                    }
-                    // create WRTC media point (anyway) for abonent B at first
-                    createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
-                            new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
-                    );
-                    break;
-
-                case SEND_DTMF:
-                    sendDTMF((String) message.get(IMessage.PROP_CALL_ID), (String) message.get(IMessage.PROP_DTMF));
-                    break;
-
-                //   media messages
-                case SDP_OFFER:
-                case SDP_ANSWER:
-                case CREATE_MEDIA_POINT_OK:
-                case CREATE_MEDIA_POINT_FAILED:
-                case CRITICAL_ERROR:
-                case JOIN_OK:
-                case JOIN_FAILED:
-                case UNJOIN_OK:
-                case UNJOIN_FAILED:
-                case REMOVE_MEDIA_POINT_OK:
-                case REMOVE_MEDIA_POINT_FAILED:
-                    String pointId = (String) message.get(IMessage.PROP_POINT_ID);
-                    IMediaPoint mp = findMediaPoint(pointId);
-                    if(null != mp){
-                        mp.onEvent(new MediaSignal(message));
-                    }else{
-                        log.warn("MediaPoint " + pointId + " not found");
-                    }
-                    break;
-
-                default:
-                    log.warn("Unhandled message " + message.getType());
-            }
-
-        } catch (Exception e) {
-            handleOnMessageException(message, e);
+    protected void handleMediaMessage(String channel, MediaMessage message)
+            throws Exception
+    {
+        switch (message.getType())
+        {
+            case SDP_OFFER:
+            case SDP_ANSWER:
+            case CREATE_MEDIA_POINT_OK:
+            case CREATE_MEDIA_POINT_FAILED:
+            case CRITICAL_ERROR:
+            case JOIN_OK:
+            case JOIN_FAILED:
+            case UNJOIN_OK:
+            case UNJOIN_FAILED:
+            case REMOVE_MEDIA_POINT_OK:
+            case REMOVE_MEDIA_POINT_FAILED:
+                String pointId = (String) message.get(IMessage.PROP_POINT_ID);
+                IMediaPoint mp = findMediaPoint(pointId);
+                if(null != mp){
+                    mp.onEvent(new MediaSignal(message));
+                }else{
+                    log.warn("MediaPoint " + pointId + " not found");
+                }
+                break;
         }
     }
 
@@ -180,7 +204,7 @@ public class BaseApplication implements
     public void handleOnMessageException(IMessage message, Throwable e){
         log.error(e.getMessage(), e);
 
-        if(message.getType() == MessageType.START_SESSION){
+        if(message.getType() == AuthMessage.Type.START_SESSION){
             ((IAuthControllerDelegate)authController)
                     .onSessionFailed(new CriticalFailedSession(message), "Critical error");
         }
@@ -295,7 +319,7 @@ public class BaseApplication implements
             call.start(params);
             ctx.setSipId(call.getId());
             sipId2callId.put(ctx.getSipId(), ctx.getCallId());
-            callLogger.push(new CallLogEntry(MessageType.START_CALL, ctx));
+            callLogger.push(new CallLogEntry(CallMessage.Type.START_CALL, ctx));
         }catch(Exception e){
             log.error(e.getMessage(), e);
         }
@@ -319,7 +343,7 @@ public class BaseApplication implements
         mp.setMediaContext(calls.get(callId).getMediaContext());
         points.put(mp.getPointId(), mp);
 
-        IMessage message = new Message(MessageType.CREATE_MEDIA_POINT);
+        IMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
         message.set(IMessage.PROP_CC, mp.getClientCapabilities().getRawData());
         message.set(IMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
         message.set(IMessage.PROP_POINT_ID, mp.getPointId());
@@ -348,7 +372,7 @@ public class BaseApplication implements
         mp.setMediaContext(media);
         points.put(mp.getPointId(), mp);
 
-        IMessage message = new Message(MessageType.CREATE_MEDIA_POINT);
+        IMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
         message.set(IMessage.PROP_CC, mp.getClientCapabilities().getRawData());
         message.set(IMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
         message.set(IMessage.PROP_POINT_ID, mp.getPointId());
@@ -367,7 +391,7 @@ public class BaseApplication implements
         if(mp == null){ return; /* skip */ }
         points.remove(pointId);
 
-        IMessage message = new Message(MessageType.REMOVE_MEDIA_POINT);
+        IMessage message = new MediaMessage(MediaMessage.Type.REMOVE_MEDIA_POINT);
         message.set(IMessage.PROP_POINT_ID, pointId);
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
@@ -379,14 +403,14 @@ public class BaseApplication implements
         IMediaPoint mp = findMediaPoint(pointId);
         if(mp == null){ return; /* skip */ }
 
-        IMessage message = new Message(MessageType.JOIN_ROOM);
+        IMessage message = new MediaMessage(MediaMessage.Type.JOIN_ROOM);
         message.set(IMessage.PROP_POINT_ID, pointId);
         message.set(IMessage.PROP_ROOM_ID, roomId);
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
-        mp.onEvent(new MediaSignal(MessageType.JOIN_OK));
+        mp.onEvent(new MediaSignal(MediaMessage.Type.JOIN_OK));
     }
 
     @Override
@@ -394,14 +418,14 @@ public class BaseApplication implements
         IMediaPoint mp = findMediaPoint(pointId);
         if(mp == null){ return; /* skip */ }
 
-        IMessage message = new Message(MessageType.UNJOIN_ROOM);
+        IMessage message = new MediaMessage(MediaMessage.Type.UNJOIN_ROOM);
         message.set(IMessage.PROP_POINT_ID, pointId);
         message.set(IMessage.PROP_ROOM_ID, roomId);
         message.set(IMessage.PROP_SENDER, getChannelName());
         message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
-        mp.onEvent(new MediaSignal(MessageType.UNJOIN_OK));
+        mp.onEvent(new MediaSignal(MediaMessage.Type.UNJOIN_OK));
     }
 
     @Override
@@ -421,7 +445,7 @@ public class BaseApplication implements
         for (IMediaPoint item : points.values()) {
             if (item.getCallId().equals(callId)) {
                 if(item instanceof SIPMediaPoint){
-                    IMessage message = new Message(MessageType.SEND_DTMF);
+                    IMessage message = new CallMessage(CallMessage.Type.SEND_DTMF);
                     message.set(IMessage.PROP_POINT_ID, item.getPointId());
                     message.set(IMessage.PROP_DTMF, dtmf);
                     broker.publish(item.getMediaContext().getMcChannel(), message);
@@ -485,8 +509,8 @@ public class BaseApplication implements
 
     @Override
     public void onCallStarting(ICallContext ctx, IMessage message) {
-        broker.publish(message.getClientChannel(), message.cloneWithAnyType(MessageType.CALL_STARTING));
-        callLogger.push(new CallLogEntry(MessageType.CALL_STARTING, ctx));
+        broker.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_STARTING));
+        callLogger.push(new CallLogEntry(CallMessage.Type.CALL_STARTING, ctx));
     }
 
     @Override
@@ -503,9 +527,9 @@ public class BaseApplication implements
     @Override
     public void onCallStarted(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithSameType());
-        callLogger.push(new CallLogEntry(MessageType.CALL_STARTED, ctx));
+        callLogger.push(new CallLogEntry(CallMessage.Type.CALL_STARTED, ctx));
         // it was a SIP call? Find media point and set state
-        IMessage sipSdpAnswerMessage = message.cloneWithAnyType(MessageType.SDP_ANSWER);
+        MediaMessage sipSdpAnswerMessage = (MediaMessage)(message.cloneWithAnyType(MediaMessage.Type.SDP_ANSWER));
         for(IMediaPoint p : points.values()){
             if(p.getCallId().equals(message.get(IMessage.PROP_CALL_ID))
                     && p.getState() == IMediaPoint.MediaPointState.OFFERER_RECEIVED){
@@ -517,8 +541,8 @@ public class BaseApplication implements
 
     @Override
     public void onCallFinished(ICallContext ctx, IMessage message) {
-        broker.publish(message.getClientChannel(), message.cloneWithAnyType(MessageType.CALL_FINISHED));
-        callLogger.push(new CallLogEntry(MessageType.CALL_FINISHED, ctx));
+        broker.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_FINISHED));
+        callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FINISHED, ctx));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
     }
@@ -526,7 +550,7 @@ public class BaseApplication implements
     @Override
     public void onCallFailed(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithSameType());
-        callLogger.push(new CallLogEntry(MessageType.CALL_FAILED, ctx, ""+message.get(IMessage.PROP_REASON)));
+        callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FAILED, ctx, ""+message.get(IMessage.PROP_REASON)));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
     }
@@ -551,7 +575,7 @@ public class BaseApplication implements
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
-                IMessage message2 = new Message(MessageType.CALL_FAILED);
+                IMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
                 broker.publish(message.getClientChannel(), message2);
                 return;
             }
@@ -575,7 +599,7 @@ public class BaseApplication implements
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
-                IMessage message2 = new Message(MessageType.CALL_FAILED);
+                IMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
                 broker.publish(message.getClientChannel(), message2);
                 return;
             }
@@ -597,7 +621,7 @@ public class BaseApplication implements
     public void onMediaFailed(IMediaPoint mp, IMessage message) {
         ICallContext ctx = findCallContext(mp.getCallId());
         if(null != ctx){
-            IMessage msg = new Message(MessageType.CALL_FAILED);
+            IMessage msg = new CallMessage(CallMessage.Type.CALL_FAILED);
             msg.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
             msg.set(IMessage.PROP_CALL_ID, ctx.getCallId());
             msg.set(IMessage.PROP_REASON, "" + message.getType());

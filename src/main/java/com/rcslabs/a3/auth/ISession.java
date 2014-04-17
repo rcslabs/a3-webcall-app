@@ -1,7 +1,7 @@
 package com.rcslabs.a3.auth;
 
-import com.rcslabs.auth.SessionSignal;
 import com.rcslabs.a3.fsm.IFSM;
+import com.rcslabs.auth.SessionSignal;
 
 public interface ISession  extends IFSM<ISession.State, SessionSignal> {
 	

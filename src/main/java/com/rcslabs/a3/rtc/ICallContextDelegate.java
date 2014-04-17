@@ -1,6 +1,5 @@
 package com.rcslabs.a3.rtc;
 
-import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.messaging.IMessage;
 
 public interface ICallContextDelegate {

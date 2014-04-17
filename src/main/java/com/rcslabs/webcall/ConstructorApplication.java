@@ -1,9 +1,9 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.rtc.ICallContext;
+import com.rcslabs.calls.CallMessage;
 import com.rcslabs.messaging.IMessage;
 import com.rcslabs.messaging.IMessageBroker;
-import com.rcslabs.messaging.Message;
 import com.rcslabs.rcl.core.IRclFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -181,7 +181,7 @@ public class ConstructorApplication extends BaseApplication {
         @Override
         public void run() {
             log.info("Finishing call {} by timer", ctx.getSipId());
-            IMessage message = new Message(MessageType.HANGUP_CALL);
+            IMessage message = new CallMessage(CallMessage.Type.HANGUP_CALL);
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
             message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
             broker.publish(channelName, message);
@@ -201,7 +201,7 @@ public class ConstructorApplication extends BaseApplication {
         @Override
         public void run() {
             log.info("Notification call {} by timer", ctx.getSipId());
-            IMessage message = new Message(MessageType.CALL_FINISH_NOTIFICATION);
+            IMessage message = new CallMessage(CallMessage.Type.CALL_FINISH_NOTIFICATION);
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
             message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
             message.set(IMessage.PROP_TIME_BEFORE_FINISH, timeBeforeFinish);

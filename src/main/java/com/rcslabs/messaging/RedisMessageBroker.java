@@ -70,7 +70,7 @@ public class RedisMessageBroker implements IMessageBroker {
     @Override
 	public void publish(String channel, IMessage message){
         if(!connected){ return; }
-        jedis.publish(channel, Message.toJson(message));
+        jedis.publish(channel, MessageMarshaller.getInstance().toJson(message));
         log.info("sent " + channel + " " + message);
 	}
 

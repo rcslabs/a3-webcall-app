@@ -2,13 +2,11 @@ package com.rcslabs.calls;
 
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.messaging.IMessage;
-import com.rcslabs.messaging.Message;
 import com.rcslabs.rcl.core.entity.ErrorInfo;
 import com.rcslabs.rcl.telephony.ICallListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.*;
 import com.rcslabs.webcall.ICallApplication;
-import com.rcslabs.webcall.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +28,7 @@ public class JainSipCallListener implements ICallListener {
     @Override
     public void onCallStarting(ICallStartingEvent event) {
         log.info(event.toString());
-        IMessage message = new Message(MessageType.CALL_STARTING);
+        CallMessage message = new CallMessage(CallMessage.Type.CALL_STARTING);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
@@ -46,7 +44,7 @@ public class JainSipCallListener implements ICallListener {
     @Override
     public void onCallStarted(ICallEvent event) {
         log.info(event.toString());
-        IMessage message = new Message(MessageType.CALL_STARTED);
+        CallMessage message = new CallMessage(CallMessage.Type.CALL_STARTED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
@@ -61,7 +59,7 @@ public class JainSipCallListener implements ICallListener {
     @Override
     public void onCallFinished(ICallEvent event) {
         log.info(event.toString());
-        IMessage message = new Message(MessageType.CALL_FINISHED);
+        CallMessage message = new CallMessage(CallMessage.Type.CALL_FINISHED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
@@ -76,7 +74,7 @@ public class JainSipCallListener implements ICallListener {
     @Override
     public void onCallFailed(ICallFailedEvent event) {
         log.info(event.toString());
-        IMessage message = new Message(MessageType.CALL_FAILED);
+        CallMessage message = new CallMessage(CallMessage.Type.CALL_FAILED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
@@ -102,7 +100,7 @@ public class JainSipCallListener implements ICallListener {
     @Override
     public void onCallError(ICallEvent event) {
         log.info(event.toString());
-        IMessage message = new Message(MessageType.CALL_FAILED);
+        CallMessage message = new CallMessage(CallMessage.Type.CALL_FAILED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
             message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());

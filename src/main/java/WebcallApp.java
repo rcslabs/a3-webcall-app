@@ -1,4 +1,8 @@
+import com.rcslabs.auth.AuthMessage;
+import com.rcslabs.calls.CallMessage;
+import com.rcslabs.media.MediaMessage;
 import com.rcslabs.messaging.IMessageBroker;
+import com.rcslabs.messaging.MessageMarshaller;
 import com.rcslabs.messaging.RedisMessageBroker;
 import com.rcslabs.rcl.JainSipGlobalParams;
 import com.rcslabs.rcl.JainSipRclFactory;
@@ -19,6 +23,8 @@ public class WebcallApp{
 
     private static IMessageBroker broker;
 
+    private MessageMarshaller m;
+
 	void run() throws Exception
 	{
         IConfig config = null;
@@ -28,6 +34,12 @@ public class WebcallApp{
 			log.info(config.toString());
 						
 			broker = new RedisMessageBroker(config.getMessagingHost(), config.getMessagingPort());
+
+            MessageMarshaller m = MessageMarshaller.getInstance();
+            m.registerMessageClass(AuthMessage.class);
+            m.registerMessageClass(CallMessage.class);
+            m.registerMessageClass(MediaMessage.class);
+            m.start();
 
             JainSipGlobalParams params = new JainSipGlobalParams();
 			params.setLocalIpAddress(  config.getSipLocalHost() );

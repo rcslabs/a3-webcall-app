@@ -2,7 +2,6 @@ package com.rcslabs.auth;
 
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.fsm.AbstractFSM;
-import com.rcslabs.webcall.MessageType;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -67,24 +66,24 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
     public void onEvent(SessionSignal event) {
         switch(this.state) {
             case INIT:
-                if(event.getType() == MessageType.START_SESSION){
+                if(event.getType() == AuthMessage.Type.START_SESSION){
                     setState(State.CONNECTING, event);
                 }
                 break;
 
             case CONNECTING:
-                if(event.getType() == MessageType.SESSION_STARTED){
+                if(event.getType() == AuthMessage.Type.SESSION_STARTED){
                     setState(State.CONNECTED, event);
-                } else if(event.getType() == MessageType.SESSION_FAILED){
+                } else if(event.getType() == AuthMessage.Type.SESSION_FAILED){
                     setState(State.FAILED, event);
                 } else {
                     unhandledEvent(event);
                 }
                 break;
             case CONNECTED:
-                if(event.getType() == MessageType.SESSION_FAILED){
+                if(event.getType() == AuthMessage.Type.SESSION_FAILED){
                     setState(State.FAILED, event);
-                } else if(event.getType() == MessageType.SESSION_CLOSED){
+                } else if(event.getType() == AuthMessage.Type.SESSION_CLOSED){
                     setState(State.CLOSED, event);
                 } else {
                     unhandledEvent(event);

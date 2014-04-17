@@ -1,14 +1,13 @@
 package com.rcslabs.media;
 
 import com.rcslabs.a3.IApplication;
+import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.a3.rtc.IMediaPointDelegate;
 import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 import com.rcslabs.rcl.telephony.entity.SdpObject;
-import com.rcslabs.webcall.MessageType;
 
 import java.util.UUID;
 
@@ -105,9 +104,9 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
         switch(this.state)
         {
             case INIT:
-                if(event.getType() == MessageType.SDP_OFFER) {
+                if(event.getType() == MediaMessage.Type.SDP_OFFER) {
                     setState(MediaPointState.OFFERER_RECEIVED, event);
-                } else if(event.getType() == MessageType.CRITICAL_ERROR) {
+                } else if(event.getType() == MediaMessage.Type.CRITICAL_ERROR) {
                     setState(MediaPointState.FAILED, event);
                 }else {
                     unhandledEvent(event);
@@ -115,9 +114,9 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
                 break;
 
             case OFFERER_RECEIVED:
-                if(event.getType() == MessageType.SDP_ANSWER) {
+                if(event.getType() == MediaMessage.Type.SDP_ANSWER) {
                     setState(MediaPointState.ANSWERER_RECEIVED, event);
-                } else if(event.getType() == MessageType.CRITICAL_ERROR) {
+                } else if(event.getType() == MediaMessage.Type.CRITICAL_ERROR) {
                     setState(MediaPointState.FAILED, event);
                 }else {
                     unhandledEvent(event);
@@ -125,11 +124,11 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
                 break;
 
             case ANSWERER_RECEIVED:
-                if(event.getType() == MessageType.CREATE_MEDIA_POINT_OK) {
+                if(event.getType() == MediaMessage.Type.CREATE_MEDIA_POINT_OK) {
                     setState(MediaPointState.CREATED, event);
-                } else if(event.getType() == MessageType.CREATE_MEDIA_POINT_FAILED) {
+                } else if(event.getType() == MediaMessage.Type.CREATE_MEDIA_POINT_FAILED) {
                     setState(MediaPointState.FAILED, event);
-                } else if(event.getType() == MessageType.CRITICAL_ERROR) {
+                } else if(event.getType() == MediaMessage.Type.CRITICAL_ERROR) {
                     setState(MediaPointState.FAILED, event);
                 }else {
                     unhandledEvent(event);
@@ -137,11 +136,11 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
                 break;
 
             case CREATED:
-                if(event.getType() == MessageType.JOIN_OK) {
+                if(event.getType() == MediaMessage.Type.JOIN_OK) {
                     setState(MediaPointState.JOINED, event);
-                } else if(event.getType() == MessageType.JOIN_FAILED) {
+                } else if(event.getType() == MediaMessage.Type.JOIN_FAILED) {
                     setState(MediaPointState.FAILED, event);
-                } else if(event.getType() == MessageType.CRITICAL_ERROR) {
+                } else if(event.getType() == MediaMessage.Type.CRITICAL_ERROR) {
                     setState(MediaPointState.FAILED, event);
                 }else {
                     unhandledEvent(event);
@@ -149,11 +148,11 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
                 break;
 
             case JOINED:
-                if(event.getType() == MessageType.UNJOIN_OK) {
+                if(event.getType() == MediaMessage.Type.UNJOIN_OK) {
                     setState(MediaPointState.CREATED, event);
-                } else if(event.getType() == MessageType.UNJOIN_FAILED) {
+                } else if(event.getType() == MediaMessage.Type.UNJOIN_FAILED) {
                     setState(MediaPointState.FAILED, event);
-                } else if(event.getType() == MessageType.CRITICAL_ERROR) {
+                } else if(event.getType() == MediaMessage.Type.CRITICAL_ERROR) {
                     setState(MediaPointState.FAILED, event);
                 }else {
                     unhandledEvent(event);
@@ -175,7 +174,7 @@ public abstract class MediaPoint extends AbstractFSM<IMediaPoint.MediaPointState
             case OFFERER_RECEIVED:  onSdpOffererReceived(event); break;
             case ANSWERER_RECEIVED: onSdpAnswererReceived(event); break;
             case CREATED:
-                if(event.getType() == MessageType.CREATE_MEDIA_POINT_OK){
+                if(event.getType() == MediaMessage.Type.CREATE_MEDIA_POINT_OK){
                     enterStateDelegate.onMediaPointCreated(this, event.getMessage());
                 } else{ // unjoined from room
                     enterStateDelegate.onMediaPointUnjoinedFromRoom(this, event.getMessage());

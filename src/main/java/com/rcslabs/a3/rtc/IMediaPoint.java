@@ -1,7 +1,7 @@
 package com.rcslabs.a3.rtc;
 
-import com.rcslabs.calls.ClientCapabilities;
 import com.rcslabs.a3.fsm.IFSM;
+import com.rcslabs.calls.ClientCapabilities;
 import com.rcslabs.media.MediaSignal;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 

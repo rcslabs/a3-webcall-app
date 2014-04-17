@@ -2,7 +2,6 @@ package com.rcslabs.calls;
 
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.messaging.IMessage;
-import com.rcslabs.webcall.MessageType;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -20,12 +19,12 @@ public class CallLogEntry implements Serializable {
     private String details;
     private String buttonId; // TODO: move it out
 
-    public CallLogEntry(MessageType type, ICallContext ctx, String details){
+    public CallLogEntry(CallMessage.Type type, ICallContext ctx, String details){
         this(type, ctx);
         this.details = details;
     }
 
-    public CallLogEntry(MessageType messageType, ICallContext ctx){
+    public CallLogEntry(CallMessage.Type messageType, ICallContext ctx){
         timestamp = (new Date()).getTime();
         type = messageType.name();
         callId = ctx.getCallId();

@@ -2,15 +2,14 @@ package com.rcslabs.media;
 
 import com.rcslabs.a3.fsm.IFSMSignal;
 import com.rcslabs.messaging.IMessage;
-import com.rcslabs.webcall.MessageType;
 
-public class MediaSignal implements IFSMSignal<MessageType> {
+public class MediaSignal implements IFSMSignal<MediaMessage.Type> {
 
-    private MessageType type;
+    private MediaMessage.Type type;
 
     private IMessage originalMessage;
 
-    public MessageType getType(){
+    public MediaMessage.Type getType(){
         return type;
     }
 
@@ -18,12 +17,12 @@ public class MediaSignal implements IFSMSignal<MessageType> {
         return originalMessage;
     }
 
-    public MediaSignal(IMessage msg){
+    public MediaSignal(MediaMessage msg){
         this(msg.getType());
         this.originalMessage = msg;
     }
 
-    public MediaSignal(MessageType type){
+    public MediaSignal(MediaMessage.Type type){
         this.type = type;
     }
 }
