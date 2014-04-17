@@ -1,5 +1,6 @@
 package com.rcslabs.a3.messaging;
 
+import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public abstract class Message<T extends Enum> implements IMessage<T> {
 
 	@Override
 	public String getClientChannel(){
-		return (null != get(PROP_SESSION_ID) ? "sid:"+get(PROP_SESSION_ID) : null);
+		return (null != get(MessageProperty.SESSION_ID) ? "sid:"+get(MessageProperty.SESSION_ID) : null);
 	}
 	
 	@Override	
@@ -60,7 +61,7 @@ public abstract class Message<T extends Enum> implements IMessage<T> {
 	public String toString() {
 		String s = "Message [type=" + type;
 		for(String key : data.keySet()){
-			if(PROP_SDP.equals(key)){ s += ", sdp=..."; continue; }
+			if(MessageProperty.SDP.equals(key)){ s += ", sdp=..."; continue; }
 			if("type".equals(key)){ continue; }
 			if("password".equals(key)){ continue; }
 			s += (", " + key + "=" + data.get(key));

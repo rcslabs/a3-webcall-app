@@ -95,7 +95,7 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
     }
 
     // FIXME: invalid deserialization int 777 to float like a 777.0
-    private Message handleObject(JsonObject json, JsonDeserializationContext context) throws Exception
+    private IMessage handleObject(JsonObject json, JsonDeserializationContext context) throws Exception
     {
         Map<String, Object> map = new HashMap<String, Object>();
 
@@ -109,6 +109,6 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
             if("type".equals(key)){ continue; }
             m.set(key, map.get(key));
         }
-        return (Message)m;
+        return m;
     }
 }

@@ -1,12 +1,12 @@
 package com.rcslabs.calls;
 
 import com.rcslabs.a3.rtc.ICallContext;
-import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.rcl.core.entity.ErrorInfo;
 import com.rcslabs.rcl.telephony.ICallListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.*;
 import com.rcslabs.webcall.ICallApplication;
+import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +31,10 @@ public class JainSipCallListener implements ICallListener {
         CallMessage message = new CallMessage(CallMessage.Type.CALL_STARTING);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            message.set(IMessage.PROP_STAGE, event.getStage().toString());
-            message.set(IMessage.PROP_SDP, ((ICallParams)event.getCall()).getSdpObject().getOfferer());
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.STAGE, event.getStage().toString());
+            message.set(MessageProperty.SDP, ((ICallParams)event.getCall()).getSdpObject().getOfferer());
             ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
@@ -47,9 +47,9 @@ public class JainSipCallListener implements ICallListener {
         CallMessage message = new CallMessage(CallMessage.Type.CALL_STARTED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            message.set(IMessage.PROP_SDP, ((ICallParams)event.getCall()).getSdpObject().getAnswerer());
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.SDP, ((ICallParams)event.getCall()).getSdpObject().getAnswerer());
             ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
@@ -62,8 +62,8 @@ public class JainSipCallListener implements ICallListener {
         CallMessage message = new CallMessage(CallMessage.Type.CALL_FINISHED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
             ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
@@ -77,9 +77,9 @@ public class JainSipCallListener implements ICallListener {
         CallMessage message = new CallMessage(CallMessage.Type.CALL_FAILED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            message.set(IMessage.PROP_REASON, event.getRejectReason().toString());
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.REASON, event.getRejectReason().toString());
             ctx.onEvent(new CallSignal(message));
         } else {
             log.warn("Call " + event.getCall().getId() + " not found");
@@ -103,13 +103,13 @@ public class JainSipCallListener implements ICallListener {
         CallMessage message = new CallMessage(CallMessage.Type.CALL_FAILED);
         ICallContext ctx = app.findCallContext(event.getCall().getId());
         if(null != ctx){
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
             ErrorInfo e = event.getErrorInfo();
             if(null == e){
-                message.set(IMessage.PROP_REASON, "ERROR");
+                message.set(MessageProperty.REASON, "ERROR");
             }else{
-                message.set(IMessage.PROP_REASON, e.getErrorCode() + " : " + e.getErrorText());
+                message.set(MessageProperty.REASON, e.getErrorCode() + " : " + e.getErrorText());
             }
 
             ctx.onEvent(new CallSignal(message));

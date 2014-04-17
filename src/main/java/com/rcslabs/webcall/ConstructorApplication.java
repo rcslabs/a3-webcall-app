@@ -62,10 +62,10 @@ public class ConstructorApplication extends BaseApplication {
     @Override
     public void beforeStartSession(IMessage message) throws Exception
     {
-        String projectId = (String)message.get(IMessage.PROP_PROJECT_ID);
+        String projectId = (String)message.get(MessageProperty.PROJECT_ID);
         Map<String, String> props = resolveButtonProperties(projectId);
-        message.set(IMessage.PROP_USERNAME, props.get(SIP_USERNAME));
-        message.set(IMessage.PROP_PASSWORD, props.get(SIP_PASSWORD));
+        message.set(MessageProperty.USERNAME, props.get(SIP_USERNAME));
+        message.set(MessageProperty.PASSWORD, props.get(SIP_PASSWORD));
     }
 
     @Override
@@ -73,18 +73,18 @@ public class ConstructorApplication extends BaseApplication {
     {
         ICallContext ctx;
         try {
-            String projectId = (String)message.get(IMessage.PROP_PROJECT_ID);
+            String projectId = (String)message.get(MessageProperty.PROJECT_ID);
             Map<String, String> props = resolveButtonProperties(projectId);
-            List<Object> vv = (List<Object>) message.get(IMessage.PROP_VV);
+            List<Object> vv = (List<Object>) message.get(MessageProperty.VOICE_VIDEO);
             String bUri = props.get((Boolean) vv.get(1) ? SIP_VIDEO_PHONE_NUMBER : SIP_VOICE_PHONE_NUMBER);
             if(-1 == bUri.indexOf('@')){
                 bUri += "@"+config.getSipServerHost()+":"+config.getSipServerPort();
             }
-            message.set(IMessage.PROP_B_URI, bUri);
+            message.set(MessageProperty.B_URI, bUri);
 
             ctx = super.createCallContext(message);
 
-            ctx.set(IMessage.PROP_PROJECT_ID, projectId);
+            ctx.set(MessageProperty.PROJECT_ID, projectId);
             // copy all interest parameters from database into call context
             if(props.containsKey(VIDEO_CALL_DURATION))
                 ctx.set(VIDEO_CALL_DURATION, props.get(VIDEO_CALL_DURATION));
@@ -98,7 +98,7 @@ public class ConstructorApplication extends BaseApplication {
                 ctx.set(DURATION_NOTIFICATION_SIPMSG, props.get(DURATION_NOTIFICATION_SIPMSG));
             return ctx;
         }catch (Exception e){
-            log.error("Critical error on create call context for callId="+message.get(IMessage.PROP_CALL_ID), e);
+            log.error("Critical error on create call context for callId="+message.get(MessageProperty.CALL_ID), e);
         }
         return null;
     }
@@ -182,8 +182,8 @@ public class ConstructorApplication extends BaseApplication {
         public void run() {
             log.info("Finishing call {} by timer", ctx.getSipId());
             IMessage message = new CallMessage(CallMessage.Type.HANGUP_CALL);
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
             broker.publish(channelName, message);
         }
     }
@@ -202,9 +202,9 @@ public class ConstructorApplication extends BaseApplication {
         public void run() {
             log.info("Notification call {} by timer", ctx.getSipId());
             IMessage message = new CallMessage(CallMessage.Type.CALL_FINISH_NOTIFICATION);
-            message.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            message.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            message.set(IMessage.PROP_TIME_BEFORE_FINISH, timeBeforeFinish);
+            message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            message.set(MessageProperty.CALL_ID, ctx.getCallId());
+            message.set(MessageProperty.TIME_BEFORE_FINISH, timeBeforeFinish);
             broker.publish(message.getClientChannel(), message);
 
         }

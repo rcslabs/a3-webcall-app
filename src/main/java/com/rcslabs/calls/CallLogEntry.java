@@ -1,7 +1,7 @@
 package com.rcslabs.calls;
 
 import com.rcslabs.a3.rtc.ICallContext;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.webcall.MessageProperty;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -33,8 +33,8 @@ public class CallLogEntry implements Serializable {
         b = ctx.getB();
 
         // TODO: move it out
-        if(ctx.has(IMessage.PROP_PROJECT_ID)){
-            this.buttonId = ""+ctx.get(IMessage.PROP_PROJECT_ID);
+        if(ctx.has(MessageProperty.PROJECT_ID)){
+            this.buttonId = ""+ctx.get(MessageProperty.PROJECT_ID);
         }
     }
 }

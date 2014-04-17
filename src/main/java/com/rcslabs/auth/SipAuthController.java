@@ -20,6 +20,7 @@ import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
 import com.rcslabs.webcall.IConfig;
+import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,18 +57,18 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 	{
         try{
             if(AuthMessage.Type.START_SESSION == message.getType()){
-                String p0 = (String) message.get(IMessage.PROP_SERVICE);
-                String p1 = (String) message.get(IMessage.PROP_USERNAME);
-                String p2 = (String) message.get(IMessage.PROP_PASSWORD);
-                String p3 = (String) message.get(IMessage.PROP_CLIENT_ID);
-                String p4 = (String) message.get(IMessage.PROP_SENDER);
+                String p0 = (String) message.get(MessageProperty.SERVICE);
+                String p1 = (String) message.get(MessageProperty.USERNAME);
+                String p2 = (String) message.get(MessageProperty.PASSWORD);
+                String p3 = (String) message.get(MessageProperty.CLIENT_ID);
+                String p4 = (String) message.get(MessageProperty.SENDER);
                 Session session = new Session(p0, p1, p2);
                 session.setClientId(p3);
                 session.setSender(p4);
                 startSession(session);
 
             }else if(AuthMessage.Type.CLOSE_SESSION == message.getType()){
-                String p0 = (String) message.get(IMessage.PROP_SESSION_ID);
+                String p0 = (String) message.get(MessageProperty.SESSION_ID);
                 ISession session = findSession(p0);
                 if(null == session){
                     log.warn("Session not found for id=" + p0);
@@ -279,12 +280,12 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
             log.error("Session " + sessionId + " not found");
         } else {
             IMessage message = new CallMessage(CallMessage.Type.INCOMING_CALL);
-            message.set(IMessage.PROP_SERVICE, session.getService());
-            message.set(IMessage.PROP_SESSION_ID, sessionId);
-            message.set(IMessage.PROP_CALL_ID, call.getId());
-            message.set(IMessage.PROP_A_URI, prepareCallUri(((ICallParams)call).getFrom()));
-            message.set(IMessage.PROP_B_URI, prepareCallUri(((ICallParams)call).getTo()));
-            message.set(IMessage.PROP_SDP, ((JainSipCall)call).getSdpObject().getOfferer());
+            message.set(MessageProperty.SERVICE, session.getService());
+            message.set(MessageProperty.SESSION_ID, sessionId);
+            message.set(MessageProperty.CALL_ID, call.getId());
+            message.set(MessageProperty.A_URI, prepareCallUri(((ICallParams)call).getFrom()));
+            message.set(MessageProperty.B_URI, prepareCallUri(((ICallParams)call).getTo()));
+            message.set(MessageProperty.SDP, ((JainSipCall)call).getSdpObject().getOfferer());
             broker.publish(session.getService(), message);
         }
 	}
@@ -307,9 +308,9 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 		log.info("onSessionStarted " + session);
         session.onEvent(new SessionSignal(AuthMessage.Type.SESSION_STARTED));
 		IMessage message = new AuthMessage(AuthMessage.Type.SESSION_STARTED);
-        message.set(IMessage.PROP_SERVICE, session.getService());
-		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
-		message.set(IMessage.PROP_CLIENT_ID, session.getClientId());
+        message.set(MessageProperty.SERVICE, session.getService());
+		message.set(MessageProperty.SESSION_ID, session.getSessionId());
+		message.set(MessageProperty.CLIENT_ID, session.getClientId());
 		broker.publish(session.getSender(), message);
 	}
 
@@ -317,10 +318,10 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 		log.info("onSessionFailed " + session);
         session.onEvent(new SessionSignal(AuthMessage.Type.SESSION_FAILED));
 		IMessage message = new AuthMessage(AuthMessage.Type.SESSION_FAILED);
-        message.set(IMessage.PROP_SERVICE, session.getService());
-		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
-		message.set(IMessage.PROP_CLIENT_ID, session.getClientId());
-		message.set(IMessage.PROP_REASON, reason);
+        message.set(MessageProperty.SERVICE, session.getService());
+		message.set(MessageProperty.SESSION_ID, session.getSessionId());
+		message.set(MessageProperty.CLIENT_ID, session.getClientId());
+		message.set(MessageProperty.REASON, reason);
 		broker.publish(session.getSender(), message);
 	}
 
@@ -328,9 +329,9 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 		log.info("onSessionClosed " + session);
         session.onEvent(new SessionSignal(AuthMessage.Type.SESSION_CLOSED));
 		IMessage message = new AuthMessage(AuthMessage.Type.SESSION_CLOSED);
-        message.set(IMessage.PROP_SERVICE, session.getService());
-		message.set(IMessage.PROP_SESSION_ID, session.getSessionId());
-		message.set(IMessage.PROP_CLIENT_ID, session.getClientId());
+        message.set(MessageProperty.SERVICE, session.getService());
+		message.set(MessageProperty.SESSION_ID, session.getSessionId());
+		message.set(MessageProperty.CLIENT_ID, session.getClientId());
 		broker.publish(session.getSender(), message);
 	}
 }

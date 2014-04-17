@@ -2,6 +2,7 @@ package com.rcslabs.media;
 
 import com.rcslabs.calls.ClientCapabilities;
 import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,16 +18,16 @@ public class SIPMediaPoint extends MediaPoint{
 
     protected void onSdpOffererReceived(MediaSignal event){
         IMessage msg = event.getMessage().cloneWithSameType();
-        sdp.setOfferer((String)msg.get(IMessage.PROP_SDP));
+        sdp.setOfferer((String)msg.get(MessageProperty.SDP));
         enterStateDelegate.onSdpOffererReceived(this, msg);
     }
 
     protected void onSdpAnswererReceived(MediaSignal event){
         IMessage msg = event.getMessage().cloneWithSameType();
-        sdp.setAnswerer((String) msg.get(IMessage.PROP_SDP));
-        msg.set(IMessage.PROP_CALL_ID,  callId);
-        msg.set(IMessage.PROP_POINT_ID, pointId);
-        msg.set(IMessage.PROP_PROFILE, profile);
+        sdp.setAnswerer((String) msg.get(MessageProperty.SDP));
+        msg.set(MessageProperty.CALL_ID,  callId);
+        msg.set(MessageProperty.POINT_ID, pointId);
+        msg.set(MessageProperty.PROFILE, profile);
         enterStateDelegate.onSdpAnswererReceived(this, msg);
     }
 

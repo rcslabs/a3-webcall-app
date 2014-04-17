@@ -4,6 +4,7 @@ package com.rcslabs.auth;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.webcall.MessageProperty;
 
 public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSignal> implements ISession{
 
@@ -13,10 +14,10 @@ public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSi
     private final String sessionId;
 
     public CriticalFailedSession(IMessage message) {
-        service = (String)message.get(IMessage.PROP_SERVICE);
-        sender = (String)message.get(IMessage.PROP_SENDER);
-        clientId = (String)message.get(IMessage.PROP_CLIENT_ID);
-        sessionId = (message.has(IMessage.PROP_SESSION_ID) ? (String)message.get(IMessage.PROP_SESSION_ID) : null);
+        service = (String)message.get(MessageProperty.SERVICE);
+        sender = (String)message.get(MessageProperty.SENDER);
+        clientId = (String)message.get(MessageProperty.CLIENT_ID);
+        sessionId = (message.has(MessageProperty.SESSION_ID) ? (String)message.get(MessageProperty.SESSION_ID) : null);
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +141,7 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
     @Override
     protected void setState(CallState state, CallSignal event) {
         super.setState(state, event);
-        event.getMessage().set(IMessage.PROP_CALL_ID, callId); // only for START_CALL
+        event.getMessage().set(MessageProperty.CALL_ID, callId); // only for START_CALL
 
         switch(state)
         {
@@ -151,7 +151,7 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
 
             case STARTING_INCOMING:
                 // save SDP from incoming call
-                set(IMessage.PROP_SDP, event.getMessage().get(IMessage.PROP_SDP));
+                set(MessageProperty.SDP, event.getMessage().get(MessageProperty.SDP));
                 stateChangedDelegate.onIncomingCall(this, event.getMessage());
                 break;
 

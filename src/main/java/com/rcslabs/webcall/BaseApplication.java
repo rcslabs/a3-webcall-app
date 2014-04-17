@@ -92,10 +92,10 @@ public class BaseApplication implements
         // all messages except START_SESSION must contains parameter "sessionId"
         // validate it and throws an Exception unsuccessfully
 
-        if(!message.has(IMessage.PROP_SESSION_ID)){
+        if(!message.has(MessageProperty.SESSION_ID)){
             throw new Exception("Skip the message without sessionId " + message);
         } else {
-            String sessionId = (String)message.get(IMessage.PROP_SESSION_ID);
+            String sessionId = (String)message.get(MessageProperty.SESSION_ID);
             ISession session = authController.findSession(sessionId);
             if(null == session){
                 log.warn("Session for message not found " + message);
@@ -129,7 +129,7 @@ public class BaseApplication implements
                 ctx = createCallContext(message);
                 // create first WRTC media point
                 createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
-                        new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
+                        new ClientCapabilities(message.get(MessageProperty.CLIENT_CAPABILITIES)), ctx.hasVoice(), ctx.hasVideo()
                 );
                 ctx.onEvent(new CallSignal(message));
                 break;
@@ -143,7 +143,7 @@ public class BaseApplication implements
             case CALL_STARTED:
             case CALL_FINISHED:
             case HANGUP_CALL:
-                callId = (String) message.get(IMessage.PROP_CALL_ID);
+                callId = (String) message.get(MessageProperty.CALL_ID);
                 ctx = findCallContext(callId);
                 if(null != ctx) {
                     ctx.onEvent(new CallSignal(message));
@@ -154,7 +154,7 @@ public class BaseApplication implements
 
             case ACCEPT_CALL:
                 // TODO: case REJECT_CALL:
-                callId = (String) message.get(IMessage.PROP_CALL_ID);
+                callId = (String) message.get(MessageProperty.CALL_ID);
                 ctx = findCallContext(callId);
                 if(null != ctx) {
                     ctx.onEvent(new CallSignal(message));
@@ -163,12 +163,12 @@ public class BaseApplication implements
                 }
                 // create WRTC media point (anyway) for abonent B at first
                 createWRTCMediaPoint(ctx.getSessionId(), ctx.getCallId(),
-                        new ClientCapabilities(message.get(IMessage.PROP_CC)), ctx.hasVoice(), ctx.hasVideo()
+                        new ClientCapabilities(message.get(MessageProperty.CLIENT_CAPABILITIES)), ctx.hasVoice(), ctx.hasVideo()
                 );
                 break;
 
             case SEND_DTMF:
-                sendDTMF((String) message.get(IMessage.PROP_CALL_ID), (String) message.get(IMessage.PROP_DTMF));
+                sendDTMF((String) message.get(MessageProperty.CALL_ID), (String) message.get(MessageProperty.DTMF));
                 break;
         }
     }
@@ -189,7 +189,7 @@ public class BaseApplication implements
             case UNJOIN_FAILED:
             case REMOVE_MEDIA_POINT_OK:
             case REMOVE_MEDIA_POINT_FAILED:
-                String pointId = (String) message.get(IMessage.PROP_POINT_ID);
+                String pointId = (String) message.get(MessageProperty.POINT_ID);
                 IMediaPoint mp = findMediaPoint(pointId);
                 if(null != mp){
                     mp.onEvent(new MediaSignal(message));
@@ -241,17 +241,17 @@ public class BaseApplication implements
             if(0 != config.getSipServerPort() && 5060 != config.getSipServerPort()){
                 sipAddr += (":"+config.getSipServerPort());
             }
-            ISession session = getAuthController().findSession((String)message.get(IMessage.PROP_SESSION_ID));
+            ISession session = getAuthController().findSession((String)message.get(MessageProperty.SESSION_ID));
 
-            String sessionId = (String)message.get(IMessage.PROP_SESSION_ID);
+            String sessionId = (String)message.get(MessageProperty.SESSION_ID);
             String callId = UUID.randomUUID().toString();
             String aUri = session.getUsername();
-            String bUri = ((String)message.get(IMessage.PROP_B_URI));
+            String bUri = ((String)message.get(MessageProperty.B_URI));
 
             if(aUri.matches("^\\d+$")){ aUri = "sip:"+aUri+"@"+sipAddr; }
             if(bUri.matches("^\\d+$")){ bUri = "sip:"+bUri+"@"+sipAddr; }
 
-            List<Object> vv = (List<Object>) message.get(IMessage.PROP_VV);
+            List<Object> vv = (List<Object>) message.get(MessageProperty.VOICE_VIDEO);
             ICallContext ctx = new CallContext(sessionId, aUri, bUri, (Boolean)vv.get(0), (Boolean)vv.get(1), callId);
             ctx.initWith(this);
             ctx.setMediaContext(new StaticMediaContext(config));
@@ -272,11 +272,11 @@ public class BaseApplication implements
     public ICallContext createIncomingCallContext(IMessage message)
     {
         try {
-            String sessionId = (String)message.get(IMessage.PROP_SESSION_ID);
-            String callId =    (String)message.get(IMessage.PROP_CALL_ID);
-            String aUri =      (String)message.get(IMessage.PROP_A_URI);
-            String bUri =      (String)message.get(IMessage.PROP_B_URI);
-            String sdp =       (String)message.get(IMessage.PROP_SDP);
+            String sessionId = (String)message.get(MessageProperty.SESSION_ID);
+            String callId =    (String)message.get(MessageProperty.CALL_ID);
+            String aUri =      (String)message.get(MessageProperty.A_URI);
+            String bUri =      (String)message.get(MessageProperty.B_URI);
+            String sdp =       (String)message.get(MessageProperty.SDP);
 
             // analyze SDP and set 'vv' properties
             boolean hasVoice = Pattern.compile("^m=audio", Pattern.MULTILINE).matcher(sdp).find();
@@ -344,12 +344,12 @@ public class BaseApplication implements
         points.put(mp.getPointId(), mp);
 
         IMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
-        message.set(IMessage.PROP_CC, mp.getClientCapabilities().getRawData());
-        message.set(IMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
-        message.set(IMessage.PROP_POINT_ID, mp.getPointId());
-        message.set(IMessage.PROP_PROFILE, mp.getProfile());
-        message.set(IMessage.PROP_SENDER, getChannelName());
-        message.set(IMessage.PROP_SESSION_ID, sessionId);
+        message.set(MessageProperty.CLIENT_CAPABILITIES, mp.getClientCapabilities().getRawData());
+        message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
+        message.set(MessageProperty.POINT_ID, mp.getPointId());
+        message.set(MessageProperty.PROFILE, mp.getProfile());
+        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SESSION_ID, sessionId);
         broker.publish(mp.getMediaContext().getMcChannel(), message);
 
         return mp;
@@ -373,12 +373,12 @@ public class BaseApplication implements
         points.put(mp.getPointId(), mp);
 
         IMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
-        message.set(IMessage.PROP_CC, mp.getClientCapabilities().getRawData());
-        message.set(IMessage.PROP_VV, Arrays.asList(hasVoice, hasVideo));
-        message.set(IMessage.PROP_POINT_ID, mp.getPointId());
-        message.set(IMessage.PROP_PROFILE, mp.getProfile());
-        message.set(IMessage.PROP_SENDER, getChannelName());
-        message.set(IMessage.PROP_SESSION_ID, sessionId);
+        message.set(MessageProperty.CLIENT_CAPABILITIES, mp.getClientCapabilities().getRawData());
+        message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
+        message.set(MessageProperty.POINT_ID, mp.getPointId());
+        message.set(MessageProperty.PROFILE, mp.getProfile());
+        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SESSION_ID, sessionId);
         message.set("dtmf", true);
         broker.publish(media.getMcChannel(), message);
 
@@ -392,9 +392,9 @@ public class BaseApplication implements
         points.remove(pointId);
 
         IMessage message = new MediaMessage(MediaMessage.Type.REMOVE_MEDIA_POINT);
-        message.set(IMessage.PROP_POINT_ID, pointId);
-        message.set(IMessage.PROP_SENDER, getChannelName());
-        message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
+        message.set(MessageProperty.POINT_ID, pointId);
+        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
@@ -404,10 +404,10 @@ public class BaseApplication implements
         if(mp == null){ return; /* skip */ }
 
         IMessage message = new MediaMessage(MediaMessage.Type.JOIN_ROOM);
-        message.set(IMessage.PROP_POINT_ID, pointId);
-        message.set(IMessage.PROP_ROOM_ID, roomId);
-        message.set(IMessage.PROP_SENDER, getChannelName());
-        message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
+        message.set(MessageProperty.POINT_ID, pointId);
+        message.set(MessageProperty.ROOM_ID, roomId);
+        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
         mp.onEvent(new MediaSignal(MediaMessage.Type.JOIN_OK));
@@ -419,10 +419,10 @@ public class BaseApplication implements
         if(mp == null){ return; /* skip */ }
 
         IMessage message = new MediaMessage(MediaMessage.Type.UNJOIN_ROOM);
-        message.set(IMessage.PROP_POINT_ID, pointId);
-        message.set(IMessage.PROP_ROOM_ID, roomId);
-        message.set(IMessage.PROP_SENDER, getChannelName());
-        message.set(IMessage.PROP_SESSION_ID, mp.getSessionId());
+        message.set(MessageProperty.POINT_ID, pointId);
+        message.set(MessageProperty.ROOM_ID, roomId);
+        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
         mp.onEvent(new MediaSignal(MediaMessage.Type.UNJOIN_OK));
@@ -446,8 +446,8 @@ public class BaseApplication implements
             if (item.getCallId().equals(callId)) {
                 if(item instanceof SIPMediaPoint){
                     IMessage message = new CallMessage(CallMessage.Type.SEND_DTMF);
-                    message.set(IMessage.PROP_POINT_ID, item.getPointId());
-                    message.set(IMessage.PROP_DTMF, dtmf);
+                    message.set(MessageProperty.POINT_ID, item.getPointId());
+                    message.set(MessageProperty.DTMF, dtmf);
                     broker.publish(item.getMediaContext().getMcChannel(), message);
                 }
             }
@@ -516,11 +516,11 @@ public class BaseApplication implements
     @Override
     public void onIncomingCall(ICallContext ctx, IMessage message) {
         IMessage message2 = message.cloneWithSameType();
-        message2.delete(IMessage.PROP_SDP);
+        message2.delete(MessageProperty.SDP);
         List<Boolean> vv = new ArrayList<Boolean>();
         vv.add(ctx.hasVoice());
         vv.add(ctx.hasVideo());
-        message2.set(IMessage.PROP_VV, vv);
+        message2.set(MessageProperty.VOICE_VIDEO, vv);
         broker.publish(message.getClientChannel(), message2);
     }
 
@@ -531,7 +531,7 @@ public class BaseApplication implements
         // it was a SIP call? Find media point and set state
         MediaMessage sipSdpAnswerMessage = (MediaMessage)(message.cloneWithAnyType(MediaMessage.Type.SDP_ANSWER));
         for(IMediaPoint p : points.values()){
-            if(p.getCallId().equals(message.get(IMessage.PROP_CALL_ID))
+            if(p.getCallId().equals(message.get(MessageProperty.CALL_ID))
                     && p.getState() == IMediaPoint.MediaPointState.OFFERER_RECEIVED){
                 // ok, this is media point waiting SDP answer?
                 p.onEvent(new MediaSignal(sipSdpAnswerMessage)); break;
@@ -550,7 +550,7 @@ public class BaseApplication implements
     @Override
     public void onCallFailed(ICallContext ctx, IMessage message) {
         broker.publish(message.getClientChannel(), message.cloneWithSameType());
-        callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FAILED, ctx, ""+message.get(IMessage.PROP_REASON)));
+        callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FAILED, ctx, ""+message.get(MessageProperty.REASON)));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
     }
@@ -579,13 +579,13 @@ public class BaseApplication implements
                 broker.publish(message.getClientChannel(), message2);
                 return;
             }
-            startCall(ctx, (String)message.get(IMessage.PROP_SDP));
+            startCall(ctx, (String)message.get(MessageProperty.SDP));
         }
     }
 
     @Override
     public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
-        message.set(IMessage.PROP_SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getChannelName());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
@@ -622,9 +622,9 @@ public class BaseApplication implements
         ICallContext ctx = findCallContext(mp.getCallId());
         if(null != ctx){
             IMessage msg = new CallMessage(CallMessage.Type.CALL_FAILED);
-            msg.set(IMessage.PROP_SESSION_ID, ctx.getSessionId());
-            msg.set(IMessage.PROP_CALL_ID, ctx.getCallId());
-            msg.set(IMessage.PROP_REASON, "" + message.getType());
+            msg.set(MessageProperty.SESSION_ID, ctx.getSessionId());
+            msg.set(MessageProperty.CALL_ID, ctx.getCallId());
+            msg.set(MessageProperty.REASON, "" + message.getType());
             onCallFailed(ctx, msg);
         }
     }
