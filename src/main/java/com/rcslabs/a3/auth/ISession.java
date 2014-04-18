@@ -2,7 +2,7 @@ package com.rcslabs.a3.auth;
 
 import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.fsm.IFSM;
-import com.rcslabs.auth.SessionSignal;
+import com.rcslabs.webcall.auth.SessionSignal;
 
 public interface ISession extends IDataStorage<Object>, IFSM<ISession.State, SessionSignal> {
 	

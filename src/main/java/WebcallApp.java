@@ -1,6 +1,6 @@
-import com.rcslabs.auth.AuthMessage;
-import com.rcslabs.calls.CallMessage;
-import com.rcslabs.media.MediaMessage;
+import com.rcslabs.webcall.auth.AuthMessage;
+import com.rcslabs.webcall.calls.CallMessage;
+import com.rcslabs.webcall.media.MediaMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.MessageMarshaller;
 import com.rcslabs.a3.messaging.RedisMessageBroker;

@@ -1,8 +1,8 @@
 package com.rcslabs.a3.rtc;
 
 import com.rcslabs.a3.fsm.IFSM;
-import com.rcslabs.calls.ClientCapabilities;
-import com.rcslabs.media.MediaSignal;
+import com.rcslabs.webcall.calls.ClientCapabilities;
+import com.rcslabs.webcall.media.MediaSignal;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 
 public interface IMediaPoint extends IFSM<IMediaPoint.MediaPointState, MediaSignal>

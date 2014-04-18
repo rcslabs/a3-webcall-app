@@ -1,7 +1,7 @@
 package com.rcslabs.a3.rtc;
 
 import com.rcslabs.a3.fsm.IFSM;
-import com.rcslabs.calls.CallSignal;
+import com.rcslabs.webcall.calls.CallSignal;
 
 public interface ICallContext extends IFSM<ICallContext.CallState, CallSignal>{
 
