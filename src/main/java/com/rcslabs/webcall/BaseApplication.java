@@ -3,6 +3,7 @@ package com.rcslabs.webcall;
 import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.IAuthControllerDelegate;
 import com.rcslabs.a3.auth.ISession;
+import com.rcslabs.a3.auth.InMemorySessionStorage;
 import com.rcslabs.a3.rtc.*;
 import com.rcslabs.auth.AuthMessage;
 import com.rcslabs.auth.CriticalFailedSession;
@@ -58,6 +59,7 @@ public class BaseApplication implements
 
         jainSipCallListener = new JainSipCallListener(this);
         authController = new SipAuthController(config, broker, factory);
+        authController.setSessionStorage(new InMemorySessionStorage());
 
         callLogger = new CallLogger(((RedisMessageBroker)broker).getJedisPool());
     }

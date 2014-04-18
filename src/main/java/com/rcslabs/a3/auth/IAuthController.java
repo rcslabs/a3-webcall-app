@@ -1,9 +1,12 @@
 package com.rcslabs.a3.auth;
 
+import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 
 
 public interface IAuthController extends IMessageBrokerDelegate {
+
+    void setSessionStorage(ISessionStorage storage);
 
 	void setTimeToLive(int value);
 	

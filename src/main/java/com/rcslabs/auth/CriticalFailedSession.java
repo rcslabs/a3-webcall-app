@@ -60,5 +60,15 @@ public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSi
     }
 
     @Override
+    public boolean has(String key) {
+        return false;
+    }
+
+    @Override
+    public void delete(String key) {
+
+    }
+
+    @Override
     public void onEvent(SessionSignal event) { /* do nothing */ }
 }

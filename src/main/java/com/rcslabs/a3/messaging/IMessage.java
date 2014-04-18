@@ -1,10 +1,10 @@
 package com.rcslabs.a3.messaging;
 
-import com.rcslabs.a3.IDataHolder;
+import com.rcslabs.a3.IDataStorage;
 
 import java.util.Map;
 
-public interface IMessage<T extends Enum> extends IDataHolder{
+public interface IMessage<T extends Enum> extends IDataStorage<Object> {
 
     IMessage cloneWithAnyType(T type);
 	

@@ -3,11 +3,11 @@ package com.rcslabs.a3;
 /**
  * Created by sx on 17.04.14.
  */
-public interface IDataHolder {
+public interface IDataStorage<T> {
 
-    void set(String key, Object value);
+    void set(String key, T value);
 
-    Object get(String key);
+    T get(String key);
 
     boolean has(String key);
 

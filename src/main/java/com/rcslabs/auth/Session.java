@@ -127,7 +127,19 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
         return null;
     }
 
-	@Override
+    @Override
+    public boolean has(String key) {
+        return data.containsKey(key);
+    }
+
+    @Override
+    public void delete(String key) {
+        if(data.containsKey(key)){
+            data.remove(key);
+        }
+    }
+
+    @Override
 	public String toString() {
 		return "Session [username=" + username	
 				+ ", sender=" + sender				

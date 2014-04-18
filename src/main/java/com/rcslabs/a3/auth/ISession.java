@@ -1,9 +1,10 @@
 package com.rcslabs.a3.auth;
 
+import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.fsm.IFSM;
 import com.rcslabs.auth.SessionSignal;
 
-public interface ISession  extends IFSM<ISession.State, SessionSignal> {
+public interface ISession extends IDataStorage<Object>, IFSM<ISession.State, SessionSignal> {
 	
 	public enum State{
         INIT, CONNECTING, CONNECTED, FAILED, CLOSED
@@ -20,8 +21,4 @@ public interface ISession  extends IFSM<ISession.State, SessionSignal> {
     public String getClientId();
 
     public String getSender();
-
-	public void set(String key, Object value);
-	
-	public Object get(String key);
 }

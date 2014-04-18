@@ -1,8 +1,10 @@
 package com.rcslabs.auth;
 
+import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.IAuthControllerDelegate;
 import com.rcslabs.a3.auth.ISession;
+import com.rcslabs.a3.auth.ISessionStorage;
 import com.rcslabs.calls.CallMessage;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
@@ -28,12 +30,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SipAuthController implements IAuthController, IAuthControllerDelegate,
+public class SipAuthController
+        implements IAuthController, IAuthControllerDelegate,
 	IConnectionListener, IMessageBrokerDelegate, ITelephonyServiceListener {
 	
 	protected final static Logger log = LoggerFactory.getLogger(SipAuthController.class);
 
-    protected Map<String, Session> sessions;
+    protected ISessionStorage storage;
 	protected int ttl;
 	protected IConfig config;
     protected IMessageBroker broker;
@@ -41,13 +44,16 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 
 	public SipAuthController(IConfig config, IMessageBroker broker, IRclFactory factory) {
 		super();
-
-		sessions = new ConcurrentHashMap<String, Session>();
         this.config = config;
         this.broker = broker;
         this.factory = factory;
         setTimeToLive( config.getSipExpires() );
 	}
+
+    @Override
+    public void setSessionStorage(ISessionStorage storage) {
+        this.storage = storage;
+    }
 
 	/** 
 	 * IMessageBrokerDelegate implementation 
@@ -104,7 +110,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 			connParams.setPresenceEnabled(false);		
 
 			((Session)session).setSessionId(conn.getId());
-			sessions.put(conn.getId(), ((Session)session));
+			storage.set(conn.getId(), ((Session) session));
 			
 			conn.open(connParams);			
 		}catch(Exception e){
@@ -130,16 +136,16 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 		}
 		
 		conn.close();
-		sessions.remove(sessionId);
+		storage.delete(sessionId);
 	}
 	
 	public ISession findSession(String value) 
 	{
-		if(!sessions.containsKey(value)) return null;
-		return sessions.get(value);
+		if(!storage.has(value)) return null;
+		return storage.get(value);
 	}
-	
-	public void setTimeToLive(int value) {
+
+    public void setTimeToLive(int value) {
 		ttl = value;	
 	}
 
@@ -170,27 +176,18 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 		}else{
 			try {
 				// find session with the same username and kick him
-				Iterator<String> it = sessions.keySet().iterator();
-				while (it.hasNext())
-				{
-					String key = it.next();
-					Session exist = sessions.get(key);
-					if(exist.getSessionId().equals(session.getSessionId())){ continue; }
-					if(!exist.getUsername().equals(session.getUsername())){ continue; }
-					it.remove();
-
-					onSessionFailed(exist, "REPLACED");
-
-					log.warn("Session " + exist.getSessionId()
-							+ " replaced with session " + session.getSessionId());
-					
-					IConnection conn = factory.findConnection(exist.getSessionId());
-					if(null != conn){
-						try {
-							conn.getService(ITelephonyService.class).removeListener(this);
-						} catch (ServiceNotEnabledException e) { /* no critical error here */}						
-					}
-				 }	
+                ISession exist = storage.findPreviousSession(session);
+                if(exist != null) {
+                    onSessionFailed(exist, "REPLACED");
+                    log.warn("Session " + exist.getSessionId()
+                            + " replaced with session " + session.getSessionId());
+                    IConnection conn = factory.findConnection(exist.getSessionId());
+                    if(null != conn){
+                        try {
+                            conn.getService(ITelephonyService.class).removeListener(this);
+                        } catch (ServiceNotEnabledException e) { /* no critical error here */}
+                    }
+                }
 				event.getConnection().getService(ITelephonyService.class).addListener(this);
 			} catch (ServiceNotEnabledException e) {
 				log.error(e.getMessage());
@@ -218,7 +215,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 			}	
 
 			onSessionClosed(session);
-			sessions.remove(session);
+            storage.delete(session.getSessionId());
 		}		
 	}
 
@@ -241,7 +238,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 				reason = event.getErrorInfo().getErrorText();
 			}
 			onSessionFailed(session, reason);
-			sessions.remove(session);
+            storage.delete(session.getSessionId());
 		}
 	}
 
@@ -265,7 +262,7 @@ public class SipAuthController implements IAuthController, IAuthControllerDelega
 				reason = event.getErrorInfo().getErrorText();
 			}
 			onSessionFailed(session, reason);
-			sessions.remove(session);
+			storage.delete(session.getSessionId());
 		}
 	}
 
