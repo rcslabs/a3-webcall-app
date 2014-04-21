@@ -314,6 +314,12 @@ public class BaseApplication implements
             params.setFrom(aUri);
             params.setTo(bUri);
             params.setCallType(ctx.hasVideo() ? CallType.VIDEO : CallType.AUDIO);
+
+            List<ICallParameter> ctxCallParams = ((CallContext)ctx).getCallParams();
+            for(ICallParameter p : ctxCallParams){
+                params.addParameter(p);
+            }
+
             ISdpObject sdp = new SdpObject();
             sdp.setOfferer(sdpOfferer);
             params.setSdpObject(sdp);

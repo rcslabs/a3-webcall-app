@@ -5,11 +5,15 @@ import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
+import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
+import com.rcslabs.rcl.telephony.entity.ICallParameter;
 import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal> implements ICallContext {
@@ -27,6 +31,7 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
     private IMediaContext mediaCtx;
     private Map<String, Object> data;
     private ICallContextDelegate stateChangedDelegate;
+    private List<ICallParameter> callParams;
 
     public CallContext(String sessionId, String aUri, String bUri, boolean hasVoice, boolean hasVideo, String id)
 	{
@@ -38,6 +43,8 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
 		this.callId = id;
         this.state = CallState.INIT;
         this.data = new HashMap<String, Object>();
+        this.callParams = new ArrayList<ICallParameter>();
+
         super.setLogger(log);
 	}
 
@@ -203,6 +210,14 @@ public class CallContext extends AbstractFSM<ICallContext.CallState, CallSignal>
 
     public String toString(){
         return "[CallContext state="+state.name()+" id="+callId+"  sipId="+sipId+" sessionId="+sessionId+"]" ;
+    }
+
+    public void addCallParameter(ICallParameter parameter) {
+        callParams.add(parameter);
+    }
+
+    public List<ICallParameter> getCallParams() {
+        return callParams;
     }
 }
 

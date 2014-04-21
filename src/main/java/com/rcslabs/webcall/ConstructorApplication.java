@@ -1,6 +1,8 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.rtc.ICallContext;
+import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
+import com.rcslabs.webcall.calls.CallContext;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
@@ -34,6 +36,7 @@ public class ConstructorApplication extends BaseApplication {
     private final String DURATION_NOTIFICATION_TIME = "durationNotificationTime";
     private final String DURATION_NOTIFICATION_DTMF = "durationNotificationDtmf";
     private final String DURATION_NOTIFICATION_SIPMSG = "durationNotificationSipmessage";
+    private final String OPERATOR_ID_PROPERTY = "operatorId";
 
     public ConstructorApplication(String channelName, IConfig config, IMessageBroker broker, IRclFactory factory)
     {
@@ -96,6 +99,14 @@ public class ConstructorApplication extends BaseApplication {
                 ctx.set(DURATION_NOTIFICATION_DTMF, props.get(DURATION_NOTIFICATION_DTMF));
             if(props.containsKey(DURATION_NOTIFICATION_SIPMSG))
                 ctx.set(DURATION_NOTIFICATION_SIPMSG, props.get(DURATION_NOTIFICATION_SIPMSG));
+
+            // add to context operator id as is if any
+            if(message.has(OPERATOR_ID_PROPERTY)){
+                ((CallContext)ctx).addCallParameter(
+                        new CallParameterSipHeader("X-A3-"+ OPERATOR_ID_PROPERTY,
+                                (String) message.get(OPERATOR_ID_PROPERTY)));
+            }
+
             return ctx;
         }catch (Exception e){
             log.error("Critical error on create call context for callId="+message.get(MessageProperty.CALL_ID), e);
