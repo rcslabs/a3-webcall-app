@@ -27,10 +27,8 @@ public class WebcallApp{
 
 	void run() throws Exception
 	{
-        IConfig config = null;
-
         try{
-            config = new AppConfig();
+            ICallAppConfig config = new CallAppConfig();
 			log.info(config.toString());
 						
 			broker = new RedisMessageBroker(config.getMessagingHost(), config.getMessagingPort());
@@ -65,10 +63,10 @@ public class WebcallApp{
     void registerApplication(ICallApplication app)
     {
         if(app.ready()){
-            log.info("Register " + app.getClass() + " for channel " + app.getChannelName());
-            broker.subscribe(app.getChannelName(), app);
+            log.info("Register " + app.getClass() + " for channel " + app.getMessagingChannel());
+            broker.subscribe(app.getMessagingChannel(), app);
         } else {
-            log.error("Unable to register " + app.getClass() + " for channel " + app.getChannelName());
+            log.error("Unable to register " + app.getClass() + " for channel " + app.getMessagingChannel());
         }
     }
 

@@ -225,7 +225,7 @@ public class BaseApplication implements
     }
 
     @Override
-    public String getChannelName() {
+    public String getMessagingChannel() {
         return channelName;
     }
 
@@ -356,7 +356,7 @@ public class BaseApplication implements
         message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
         message.set(MessageProperty.POINT_ID, mp.getPointId());
         message.set(MessageProperty.PROFILE, mp.getProfile());
-        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, sessionId);
         broker.publish(mp.getMediaContext().getMcChannel(), message);
 
@@ -385,7 +385,7 @@ public class BaseApplication implements
         message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
         message.set(MessageProperty.POINT_ID, mp.getPointId());
         message.set(MessageProperty.PROFILE, mp.getProfile());
-        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, sessionId);
         message.set("dtmf", true);
         broker.publish(media.getMcChannel(), message);
@@ -401,7 +401,7 @@ public class BaseApplication implements
 
         IMessage message = new MediaMessage(MediaMessage.Type.REMOVE_MEDIA_POINT);
         message.set(MessageProperty.POINT_ID, pointId);
-        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
@@ -414,7 +414,7 @@ public class BaseApplication implements
         IMessage message = new MediaMessage(MediaMessage.Type.JOIN_ROOM);
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.ROOM_ID, roomId);
-        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
@@ -429,7 +429,7 @@ public class BaseApplication implements
         IMessage message = new MediaMessage(MediaMessage.Type.UNJOIN_ROOM);
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.ROOM_ID, roomId);
-        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
@@ -593,7 +593,7 @@ public class BaseApplication implements
 
     @Override
     public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
-        message.set(MessageProperty.SENDER, getChannelName());
+        message.set(MessageProperty.SENDER, getMessagingChannel());
         broker.publish(mp.getMediaContext().getMcChannel(), message);
     }
 

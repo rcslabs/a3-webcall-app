@@ -8,13 +8,14 @@ import com.rcslabs.webcall.ICallAppConfig;
  * Created by sx on 15.04.14.
  */
 public interface IApplication {
+
     boolean ready();
 
     IAuthController getAuthController();
 
     ICallAppConfig getConfig();
 
-    String getChannelName();
+    String getMessagingChannel();
 
     void beforeStartSession(IMessage message) throws Exception;
 }
