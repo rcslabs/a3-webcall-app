@@ -34,7 +34,7 @@ public class BaseApplication implements
 
     protected String channelName;
 
-    protected IConfig config;
+    protected ICallAppConfig config;
     protected IRclFactory factory;
     protected ICallListener jainSipCallListener;
     protected IMessageBroker broker;
@@ -46,7 +46,7 @@ public class BaseApplication implements
 
     protected CallLogger callLogger;
 
-    public BaseApplication(String channelName, IConfig config, IMessageBroker broker, IRclFactory factory)
+    public BaseApplication(String channelName, ICallAppConfig config, IMessageBroker broker, IRclFactory factory)
     {
         this.channelName = channelName;
         this.points = new ConcurrentHashMap<String, IMediaPoint>();
@@ -215,7 +215,7 @@ public class BaseApplication implements
 
 
     @Override
-    public IConfig getConfig() {
+    public ICallAppConfig getConfig() {
         return config;
     }
 

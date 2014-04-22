@@ -1,7 +1,7 @@
 package com.rcslabs.webcall.media;
 
 import com.rcslabs.a3.rtc.IMediaContext;
-import com.rcslabs.webcall.IConfig;
+import com.rcslabs.webcall.ICallAppConfig;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,9 +11,9 @@ import java.util.Set;
  */
 public class StaticMediaContext implements IMediaContext {
 
-    private IConfig config;
+    private ICallAppConfig config;
 
-    public StaticMediaContext(IConfig config) {
+    public StaticMediaContext(ICallAppConfig config) {
         this.config = config;
     }
 

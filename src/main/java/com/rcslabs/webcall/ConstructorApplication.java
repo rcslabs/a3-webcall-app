@@ -38,7 +38,7 @@ public class ConstructorApplication extends BaseApplication {
     private final String DURATION_NOTIFICATION_SIPMSG = "durationNotificationSipmessage";
     private final String OPERATOR_ID_PROPERTY = "operatorId";
 
-    public ConstructorApplication(String channelName, IConfig config, IMessageBroker broker, IRclFactory factory)
+    public ConstructorApplication(String channelName, ICallAppConfig config, IMessageBroker broker, IRclFactory factory)
     {
         super(channelName, config, broker, factory);
 

@@ -2,7 +2,7 @@ package com.rcslabs.webcall;
 
 import com.rcslabs.a3.config.AbstractConfig;
 
-public class AppConfig extends AbstractConfig implements IConfig {
+public class AppConfig extends AbstractConfig implements ICallAppConfig {
 
     @Override
     public String getDatabaseUrl() {
@@ -62,6 +62,12 @@ public class AppConfig extends AbstractConfig implements IConfig {
     @Override
     public String getMcChannel() {
         return getPropertyAsString("mc-channel");
+    }
+
+    @Override
+    public String getMessagingChannel() {
+        // TODO: implement this
+        return null;
     }
 
     @Override

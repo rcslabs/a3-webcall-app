@@ -4,6 +4,7 @@ import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.IAuthControllerDelegate;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.auth.ISessionStorage;
+import com.rcslabs.webcall.ICallAppConfig;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
@@ -20,7 +21,6 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
-import com.rcslabs.webcall.IConfig;
 import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +33,11 @@ public class SipAuthController
 
     protected ISessionStorage storage;
 	protected int ttl;
-	protected IConfig config;
+	protected ICallAppConfig config;
     protected IMessageBroker broker;
     protected IRclFactory factory;
 
-	public SipAuthController(IConfig config, IMessageBroker broker, IRclFactory factory) {
+	public SipAuthController(ICallAppConfig config, IMessageBroker broker, IRclFactory factory) {
 		super();
         this.config = config;
         this.broker = broker;

@@ -1,6 +1,6 @@
 package com.rcslabs.a3.config;
 
-import com.rcslabs.webcall.IConfig;
+import com.rcslabs.webcall.ICallAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +92,7 @@ public abstract class AbstractConfig implements IConfigChainHandler {
 	public String toString() {
 		String res = "Config [";
 		try {
-			Method[] m = IConfig.class.getDeclaredMethods();
+			Method[] m = ICallAppConfig.class.getDeclaredMethods();
 			for (int i = 0; i < m.length; i++) {     
 				 String key = m[i].getName().substring(3);
 				 String val = (m[i].invoke(this)).toString();
