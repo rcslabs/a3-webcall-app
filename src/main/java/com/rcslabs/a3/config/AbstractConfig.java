@@ -87,22 +87,4 @@ public abstract class AbstractConfig implements IConfigChainHandler {
         }
         return null;
     }
-
-	@Override
-	public String toString() {
-		String res = "Config [";
-		try {
-			Method[] m = ICallAppConfig.class.getDeclaredMethods();
-			for (int i = 0; i < m.length; i++) {     
-				 String key = m[i].getName().substring(3);
-				 String val = (m[i].invoke(this)).toString();
-				 res += (key+"="+val+", ");
-			}		
-		} catch (Exception e) {
-			log.error("Error " + e.getMessage());
-		} 		
-		return res + "]";
-	}
-
-
 }

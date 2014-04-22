@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class Message<T extends Enum> implements IMessage<T> {
+public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 
-    protected final static Logger log = LoggerFactory.getLogger(Message.class);
+    protected final static Logger log = LoggerFactory.getLogger(AbstractMessage.class);
 
 	private T type;
 	
@@ -21,7 +21,7 @@ public abstract class Message<T extends Enum> implements IMessage<T> {
 		return data;
 	}
 
-	public Message(T type) {
+	public AbstractMessage(T type) {
 		super();
 		this.type = type; 
 		this.data = new HashMap<String, Object>();

@@ -1,11 +1,11 @@
 package com.rcslabs.webcall.media;
 
-import com.rcslabs.a3.messaging.Message;
+import com.rcslabs.a3.messaging.AbstractMessage;
 
 /**
  * Created by sx on 15.04.14.
  */
-public class MediaMessage extends Message<MediaMessage.Type> {
+public class MediaMessage extends AbstractMessage<MediaMessage.Type> {
 
     public static enum Type {
         SDP_OFFER,

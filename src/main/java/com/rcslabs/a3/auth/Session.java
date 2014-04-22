@@ -1,6 +1,5 @@
-package com.rcslabs.webcall.auth;
+package com.rcslabs.a3.auth;
 
-import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.fsm.AbstractFSM;
 
 import java.util.Date;

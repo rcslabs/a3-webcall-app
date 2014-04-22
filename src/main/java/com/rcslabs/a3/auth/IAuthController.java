@@ -4,9 +4,7 @@ import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 
 
-public interface IAuthController extends IMessageBrokerDelegate {
-
-    void setSessionStorage(ISessionStorage storage);
+public interface IAuthController {
 
 	void setTimeToLive(int value);
 	
@@ -15,6 +13,12 @@ public interface IAuthController extends IMessageBrokerDelegate {
 	void startSession(ISession session);
 	
 	void closeSession(String sessionId);
-	
+
 	ISession findSession(String value);
+
+    void onSessionStarted(ISession session);
+
+    void onSessionFailed(ISession session, String reason);
+
+    void onSessionClosed(ISession session);
 }

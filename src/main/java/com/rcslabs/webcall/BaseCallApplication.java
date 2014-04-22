@@ -1,13 +1,12 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.auth.IAuthController;
-import com.rcslabs.a3.auth.IAuthControllerDelegate;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.auth.InMemorySessionStorage;
+import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.rtc.*;
-import com.rcslabs.webcall.auth.AuthMessage;
-import com.rcslabs.webcall.auth.CriticalFailedSession;
-import com.rcslabs.webcall.auth.SipAuthController;
+import com.rcslabs.a3.auth.AuthMessage;
+import com.rcslabs.a3.auth.CriticalFailedSession;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
@@ -27,10 +26,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-public class BaseApplication implements
+public class BaseCallApplication implements
         ICallApplication, ICallContextDelegate, IMediaPointDelegate, IMessageBrokerDelegate {
 
-    protected final static Logger log = LoggerFactory.getLogger(BaseApplication.class);
+    protected final static Logger log = LoggerFactory.getLogger(BaseCallApplication.class);
 
     protected String channelName;
 
@@ -46,7 +45,7 @@ public class BaseApplication implements
 
     protected CallLogger callLogger;
 
-    public BaseApplication(String channelName, ICallAppConfig config, IMessageBroker broker, IRclFactory factory)
+    public BaseCallApplication(String channelName, ICallAppConfig config, IMessageBroker broker, IRclFactory factory)
     {
         this.channelName = channelName;
         this.points = new ConcurrentHashMap<String, IMediaPoint>();
@@ -59,7 +58,6 @@ public class BaseApplication implements
 
         jainSipCallListener = new JainSipCallListener(this);
         authController = new SipAuthController(config, broker, factory);
-        authController.setSessionStorage(new InMemorySessionStorage());
 
         callLogger = new CallLogger(((RedisMessageBroker)broker).getJedisPool());
     }
@@ -113,7 +111,7 @@ public class BaseApplication implements
             case START_SESSION:
                 beforeStartSession(message);
             case CLOSE_SESSION:
-                authController.onMessageReceived(channel, message);
+                ((SipAuthController)authController).onMessageReceived(channel, message);
                 break;
         }
     }
@@ -207,15 +205,14 @@ public class BaseApplication implements
         log.error(e.getMessage(), e);
 
         if(message.getType() == AuthMessage.Type.START_SESSION){
-            ((IAuthControllerDelegate)authController)
-                    .onSessionFailed(new CriticalFailedSession(message), "Critical error");
+            authController.onSessionFailed(new CriticalFailedSession(message), "Critical error");
         }
     }
 
 
 
     @Override
-    public ICallAppConfig getConfig() {
+    public IConfig getConfig() {
         return config;
     }
 

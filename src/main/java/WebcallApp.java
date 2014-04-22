@@ -1,4 +1,7 @@
-import com.rcslabs.webcall.auth.AuthMessage;
+import com.rcslabs.a3.IApplication;
+import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
+import com.rcslabs.chat.BaseChatApplication;
+import com.rcslabs.a3.auth.AuthMessage;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.webcall.media.MediaMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
@@ -51,20 +54,20 @@ public class WebcallApp{
 
             JainSipRclFactory factory = new JainSipRclFactory(params);
 
-            registerApplication(new ConstructorApplication("constructor", config, broker, factory));
-            registerApplication(new BaseApplication("click2call", config, broker, factory));
-
+            registerApplication(new ConstructorCallApplication("constructor", config, broker, factory));
+            registerApplication(new BaseCallApplication("click2call", config, broker, factory));
+            registerApplication(new BaseChatApplication("chat", config, broker));
 		}catch(Exception e){
             log.error("Unhandled exception in main. Application will be exit.", e);
 			return; 
 		}
 	}
 
-    void registerApplication(ICallApplication app)
+    void registerApplication(IApplication app)
     {
         if(app.ready()){
             log.info("Register " + app.getClass() + " for channel " + app.getMessagingChannel());
-            broker.subscribe(app.getMessagingChannel(), app);
+            broker.subscribe(app.getMessagingChannel(), (IMessageBrokerDelegate)app);
         } else {
             log.error("Unable to register " + app.getClass() + " for channel " + app.getMessagingChannel());
         }

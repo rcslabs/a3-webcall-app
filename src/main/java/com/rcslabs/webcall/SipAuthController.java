@@ -1,9 +1,6 @@
-package com.rcslabs.webcall.auth;
+package com.rcslabs.webcall;
 
-import com.rcslabs.a3.auth.IAuthController;
-import com.rcslabs.a3.auth.IAuthControllerDelegate;
-import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.auth.ISessionStorage;
+import com.rcslabs.a3.auth.*;
 import com.rcslabs.webcall.ICallAppConfig;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.a3.messaging.IMessage;
@@ -22,35 +19,21 @@ import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
 import com.rcslabs.webcall.MessageProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class SipAuthController
-        implements IAuthController, IAuthControllerDelegate,
-	IConnectionListener, IMessageBrokerDelegate, ITelephonyServiceListener {
-	
-	protected final static Logger log = LoggerFactory.getLogger(SipAuthController.class);
+public class SipAuthController extends AbstractAuthController
+        implements IConnectionListener, IMessageBrokerDelegate, ITelephonyServiceListener {
 
-    protected ISessionStorage storage;
-	protected int ttl;
 	protected ICallAppConfig config;
-    protected IMessageBroker broker;
     protected IRclFactory factory;
 
 	public SipAuthController(ICallAppConfig config, IMessageBroker broker, IRclFactory factory) {
-		super();
+		super(broker, new InMemorySessionStorage());
         this.config = config;
-        this.broker = broker;
         this.factory = factory;
         setTimeToLive( config.getSipExpires() );
 	}
 
-    @Override
-    public void setSessionStorage(ISessionStorage storage) {
-        this.storage = storage;
-    }
-
-	/** 
+	/**
 	 * IMessageBrokerDelegate implementation 
 	 */
 	
@@ -133,21 +116,7 @@ public class SipAuthController
 		conn.close();
 		storage.delete(sessionId);
 	}
-	
-	public ISession findSession(String value) 
-	{
-		if(!storage.has(value)) return null;
-		return storage.get(value);
-	}
 
-    public void setTimeToLive(int value) {
-		ttl = value;	
-	}
-
-	public int getTimeToLive() {
-		return ttl;
-	}
-	
 	/**
 	 * IConnectionListener implementation 
 	 */
@@ -291,39 +260,4 @@ public class SipAuthController
         int e = uri.indexOf('>');
         return uri.substring(b, e);
     }
-
-	/**
-	 * IAuthServiceDelegate implementation 
-	 */
-		
-	public void onSessionStarted(ISession session) {
-		log.info("onSessionStarted " + session);
-        session.onEvent(new SessionSignal(AuthMessage.Type.SESSION_STARTED));
-		IMessage message = new AuthMessage(AuthMessage.Type.SESSION_STARTED);
-        message.set(MessageProperty.SERVICE, session.getService());
-		message.set(MessageProperty.SESSION_ID, session.getSessionId());
-		message.set(MessageProperty.CLIENT_ID, session.getClientId());
-		broker.publish(session.getSender(), message);
-	}
-
-	public void onSessionFailed(ISession session, String reason) {
-		log.info("onSessionFailed " + session);
-        session.onEvent(new SessionSignal(AuthMessage.Type.SESSION_FAILED));
-		IMessage message = new AuthMessage(AuthMessage.Type.SESSION_FAILED);
-        message.set(MessageProperty.SERVICE, session.getService());
-		message.set(MessageProperty.SESSION_ID, session.getSessionId());
-		message.set(MessageProperty.CLIENT_ID, session.getClientId());
-		message.set(MessageProperty.REASON, reason);
-		broker.publish(session.getSender(), message);
-	}
-
-	public void onSessionClosed(ISession session) {
-		log.info("onSessionClosed " + session);
-        session.onEvent(new SessionSignal(AuthMessage.Type.SESSION_CLOSED));
-		IMessage message = new AuthMessage(AuthMessage.Type.SESSION_CLOSED);
-        message.set(MessageProperty.SERVICE, session.getService());
-		message.set(MessageProperty.SESSION_ID, session.getSessionId());
-		message.set(MessageProperty.CLIENT_ID, session.getClientId());
-		broker.publish(session.getSender(), message);
-	}
 }

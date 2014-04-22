@@ -1,11 +1,11 @@
 package com.rcslabs.webcall.calls;
 
-import com.rcslabs.a3.messaging.Message;
+import com.rcslabs.a3.messaging.AbstractMessage;
 
 /**
  * Created by sx on 15.04.14.
  */
-public class CallMessage extends Message<CallMessage.Type> {
+public class CallMessage extends AbstractMessage<CallMessage.Type> {
 
     public static enum Type {
         START_CALL,

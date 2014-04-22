@@ -2,6 +2,8 @@ package com.rcslabs.webcall;
 
 import com.rcslabs.a3.config.AbstractConfig;
 
+import java.lang.reflect.Method;
+
 public class CallAppConfig extends AbstractConfig implements ICallAppConfig {
 
     @Override
@@ -72,5 +74,22 @@ public class CallAppConfig extends AbstractConfig implements ICallAppConfig {
     @Override
     public Integer getMessagingPort() {
         return getMessagingPortInternal();
+    }
+
+    @Override
+    public String toString() {
+        String res = "CallAppConfig [";
+        try {
+            Method[] m = CallAppConfig.class.getDeclaredMethods();
+            for (int i = 0; i < m.length; i++) {
+                if(0 != m[i].getName().indexOf("get")){ continue; }
+                String key = m[i].getName().substring(3);
+                String val = (m[i].invoke(this)).toString();
+                res += (key+"="+val+", ");
+            }
+        } catch (Exception e) {
+            log.error("Error " + e.getMessage());
+        }
+        return res + "]";
     }
 }
