@@ -1,11 +1,11 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.IApplication;
+import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.webcall.calls.ClientCapabilities;
-import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 
 import java.util.List;
 

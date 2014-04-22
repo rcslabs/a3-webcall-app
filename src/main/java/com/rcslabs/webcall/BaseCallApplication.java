@@ -1,16 +1,16 @@
 package com.rcslabs.webcall;
 
-import com.rcslabs.a3.auth.IAuthController;
-import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.auth.InMemorySessionStorage;
-import com.rcslabs.a3.config.IConfig;
-import com.rcslabs.a3.rtc.*;
 import com.rcslabs.a3.auth.AuthMessage;
 import com.rcslabs.a3.auth.CriticalFailedSession;
+import com.rcslabs.a3.auth.IAuthController;
+import com.rcslabs.a3.auth.ISession;
+import com.rcslabs.a3.config.IConfig;
+import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 import com.rcslabs.a3.messaging.RedisMessageBroker;
+import com.rcslabs.a3.rtc.*;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.exception.ServiceNotEnabledException;
 import com.rcslabs.rcl.telephony.ICall;
@@ -85,7 +85,8 @@ public class BaseCallApplication implements
         }
     }
 
-    protected void validateMessage(IMessage message) throws Exception
+    @Override
+    public void validateMessage(IMessage message) throws InvalidMessageException
     {
         if(message.getType() == AuthMessage.Type.START_SESSION){ return; }
 
@@ -93,7 +94,7 @@ public class BaseCallApplication implements
         // validate it and throws an Exception unsuccessfully
 
         if(!message.has(MessageProperty.SESSION_ID)){
-            throw new Exception("Skip the message without sessionId " + message);
+            throw new InvalidMessageException("Skip the message without sessionId " + message);
         } else {
             String sessionId = (String)message.get(MessageProperty.SESSION_ID);
             ISession session = authController.findSession(sessionId);

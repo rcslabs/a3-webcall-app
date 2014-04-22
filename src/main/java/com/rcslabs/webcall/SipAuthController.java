@@ -1,8 +1,7 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.auth.*;
-import com.rcslabs.webcall.ICallAppConfig;
-import com.rcslabs.webcall.calls.CallMessage;
+import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
@@ -18,7 +17,7 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
-import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.webcall.calls.CallMessage;
 
 public class SipAuthController extends AbstractAuthController
         implements IConnectionListener, IMessageBrokerDelegate, ITelephonyServiceListener {
@@ -27,10 +26,9 @@ public class SipAuthController extends AbstractAuthController
     protected IRclFactory factory;
 
 	public SipAuthController(ICallAppConfig config, IMessageBroker broker, IRclFactory factory) {
-		super(broker, new InMemorySessionStorage());
+		super(broker, new InMemorySessionStorage(), config.getSipExpires());
         this.config = config;
         this.factory = factory;
-        setTimeToLive( config.getSipExpires() );
 	}
 
 	/**
@@ -41,15 +39,7 @@ public class SipAuthController extends AbstractAuthController
 	{
         try{
             if(AuthMessage.Type.START_SESSION == message.getType()){
-                String p0 = (String) message.get(MessageProperty.SERVICE);
-                String p1 = (String) message.get(MessageProperty.USERNAME);
-                String p2 = (String) message.get(MessageProperty.PASSWORD);
-                String p3 = (String) message.get(MessageProperty.CLIENT_ID);
-                String p4 = (String) message.get(MessageProperty.SENDER);
-                Session session = new Session(p0, p1, p2);
-                session.setClientId(p3);
-                session.setSender(p4);
-                startSession(session);
+                startSession(new Session((AuthMessage)message));
 
             }else if(AuthMessage.Type.CLOSE_SESSION == message.getType()){
                 String p0 = (String) message.get(MessageProperty.SESSION_ID);
@@ -64,6 +54,12 @@ public class SipAuthController extends AbstractAuthController
             handleOnMessageException(message, e);
         }
 	}
+
+    @Override
+    public void validateMessage(IMessage message) throws InvalidMessageException {
+
+    }
+
 
     @Override
     public void handleOnMessageException(IMessage message, Throwable e) {

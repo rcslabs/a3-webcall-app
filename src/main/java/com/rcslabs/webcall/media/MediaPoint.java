@@ -5,9 +5,9 @@ import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.a3.rtc.IMediaPointDelegate;
-import com.rcslabs.webcall.calls.ClientCapabilities;
 import com.rcslabs.rcl.telephony.entity.ISdpObject;
 import com.rcslabs.rcl.telephony.entity.SdpObject;
+import com.rcslabs.webcall.calls.ClientCapabilities;
 
 import java.util.UUID;
 

@@ -19,11 +19,21 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
 	private long stime;
 	private Map<String, Object> data;
 	private ISession.State state;
-	
-	public Session(String service, String username, String password){
+
+    public Session(AuthMessage message) {
+        this((String) message.get("service"),
+             (String) message.get("username"),
+             (String) message.get("password"),
+             (String) message.get("clientId"),
+             (String) message.get("sender"));
+    }
+
+	public Session(String service, String username, String password, String clientId, String sender){
         this.service = service;
 		this.username = username;
 		this.password = password;
+        this.clientId = clientId;
+        this.sender = sender;
 		stime = new Date().getTime();
 		data = new HashMap<String, Object>();
 		state = State.INIT;
@@ -100,17 +110,9 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
 		return clientId;
 	}
 
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-
     @Override
 	public String getSender() {
 		return sender;
-	}
-
-	public void setSender(String sender) {
-		this.sender = sender;
 	}
 
     @Override

@@ -1,10 +1,8 @@
 package com.rcslabs.a3.config;
 
-import com.rcslabs.webcall.ICallAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;

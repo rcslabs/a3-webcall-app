@@ -1,8 +1,8 @@
 package com.rcslabs.webcall.media;
 
-import com.rcslabs.webcall.calls.ClientCapabilities;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.webcall.calls.ClientCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

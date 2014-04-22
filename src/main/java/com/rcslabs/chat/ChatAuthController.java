@@ -10,8 +10,8 @@ import com.rcslabs.a3.messaging.IMessageBroker;
  */
 public class ChatAuthController extends AbstractAuthController {
 
-    public ChatAuthController(IMessageBroker broker, ISessionStorage storage) {
-        super(broker, storage);
+    public ChatAuthController(IMessageBroker broker, ISessionStorage storage, int timeToLive) {
+        super(broker, storage, timeToLive);
     }
 
     @Override

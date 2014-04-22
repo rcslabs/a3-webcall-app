@@ -1,15 +1,7 @@
 package com.rcslabs.a3.auth;
 
-import com.rcslabs.a3.IDataStorage;
-import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
-
-
 public interface IAuthController {
 
-	void setTimeToLive(int value);
-	
-	int getTimeToLive();
-	
 	void startSession(ISession session);
 	
 	void closeSession(String sessionId);

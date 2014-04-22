@@ -5,7 +5,6 @@ import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
-import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
 import com.rcslabs.rcl.telephony.entity.ICallParameter;
 import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;

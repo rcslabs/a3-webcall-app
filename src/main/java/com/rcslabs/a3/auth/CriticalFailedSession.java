@@ -1,8 +1,6 @@
 package com.rcslabs.a3.auth;
 
 
-import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.auth.SessionSignal;
 import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.webcall.MessageProperty;

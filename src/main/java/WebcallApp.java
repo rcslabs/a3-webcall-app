@@ -56,7 +56,7 @@ public class WebcallApp{
 
             registerApplication(new ConstructorCallApplication("constructor", config, broker, factory));
             registerApplication(new BaseCallApplication("click2call", config, broker, factory));
-            registerApplication(new BaseChatApplication("chat", config, broker));
+            registerApplication(new BaseChatApplication("chat", broker));
 		}catch(Exception e){
             log.error("Unhandled exception in main. Application will be exit.", e);
 			return; 
@@ -67,7 +67,7 @@ public class WebcallApp{
     {
         if(app.ready()){
             log.info("Register " + app.getClass() + " for channel " + app.getMessagingChannel());
-            broker.subscribe(app.getMessagingChannel(), (IMessageBrokerDelegate)app);
+            broker.subscribe(app.getMessagingChannel(), app);
         } else {
             log.error("Unable to register " + app.getClass() + " for channel " + app.getMessagingChannel());
         }

@@ -17,26 +17,16 @@ public abstract class AbstractAuthController implements IAuthController {
     protected final ISessionStorage storage;
     protected int ttl;
 
-    public AbstractAuthController(IMessageBroker broker, ISessionStorage storage){
+    public AbstractAuthController(IMessageBroker broker, ISessionStorage storage, int timeToLive){
         this.broker = broker;
         this.storage = storage;
+        this.ttl = timeToLive;
     }
 
     @Override
-    public ISession findSession(String value)
-    {
+    public ISession findSession(String value) {
         if(!storage.has(value)) return null;
         return storage.get(value);
-    }
-
-    @Override
-    public void setTimeToLive(int value) {
-        ttl = value;
-    }
-
-    @Override
-    public int getTimeToLive() {
-        return ttl;
     }
 
     @Override
