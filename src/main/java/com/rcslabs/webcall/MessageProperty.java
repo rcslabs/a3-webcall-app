@@ -4,7 +4,8 @@ package com.rcslabs.webcall;
  * Created by sx on 17.04.14.
  */
 public class MessageProperty {
-
+    public static final String MESSAGE_ID = "messageId";
+    public static final String CONTENT = "content";
     public static final String ROOM_ID = "roomId";
     public static final String POINT_ID = "pointId";
     public static final String SERVICE = "service";

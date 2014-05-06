@@ -5,6 +5,8 @@ import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.webcall.MessageProperty;
 
+import java.util.Collection;
+
 public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSignal> implements ISession{
 
     private final String service;
@@ -55,6 +57,11 @@ public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSi
 
     @Override
     public Object get(String key) {
+        return null;
+    }
+
+    @Override
+    public Collection<Object> getAll() {
         return null;
     }
 

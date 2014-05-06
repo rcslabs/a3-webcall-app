@@ -72,6 +72,10 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
                     obj.add(key, null);
                 }else if(val instanceof String){
                     obj.addProperty(key, (String) val);
+                }else if(val instanceof Long){
+                    obj.addProperty(key, (Long) val);
+                }else if(val instanceof Integer){
+                    obj.addProperty(key, (Integer) val);
                 }else if(val instanceof Number){
                     obj.addProperty(key, (Number) val);
                 }else if(val instanceof Boolean){
@@ -100,8 +104,11 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
         Map<String, Object> map = new HashMap<String, Object>();
 
         for (Map.Entry<String, JsonElement> entry : json.entrySet()){
-            Object value = context.deserialize(entry.getValue(), Object.class);
-            map.put(entry.getKey(), value);
+            if(entry.getKey().equals("timestamp")){
+                map.put(entry.getKey(), context.deserialize(entry.getValue(), Long.class));
+            }else{
+                map.put(entry.getKey(), context.deserialize(entry.getValue(), Object.class));
+            }
         }
 
         IMessage m = createEmptyMessage((String) map.get("type"));

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,7 +58,12 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 		data.remove(key);
 	}
 
-	@Override
+    @Override
+    public Collection<Object> getAll() {
+        return data.values();
+    }
+
+    @Override
 	public String toString() {
 		String s = "Message [type=" + type;
 		for(String key : data.keySet()){

@@ -2,6 +2,7 @@ import com.rcslabs.a3.IApplication;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 import com.rcslabs.chat.BaseChatApplication;
 import com.rcslabs.a3.auth.AuthMessage;
+import com.rcslabs.chat.ChatMessage;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.webcall.media.MediaMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
@@ -40,6 +41,7 @@ public class WebcallApp{
             m.registerMessageClass(AuthMessage.class);
             m.registerMessageClass(CallMessage.class);
             m.registerMessageClass(MediaMessage.class);
+            m.registerMessageClass(ChatMessage.class);
             m.start();
 
             JainSipGlobalParams params = new JainSipGlobalParams();

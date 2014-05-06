@@ -2,6 +2,7 @@ package com.rcslabs.a3.auth;
 
 import com.rcslabs.a3.fsm.AbstractFSM;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -126,6 +127,11 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
             return data.get(key);
         }
         return null;
+    }
+
+    @Override
+    public Collection<Object> getAll() {
+        return data.values();
     }
 
     @Override

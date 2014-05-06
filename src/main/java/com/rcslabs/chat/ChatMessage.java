@@ -9,8 +9,13 @@ public class ChatMessage extends AbstractMessage<ChatMessage.Type> {
 
     public static enum Type {
         JOIN_CHATROOM,
+        JOIN_CHATROOM_OK,
+        JOIN_CHATROOM_FAILED,
         UNJOIN_CHATROOM,
-        TEXT_MESSAGE
+        CHAT_MESSAGE,
+        CHAT_MESSAGE_SENT,
+        CHAT_MESSAGE_FAILED,
+        INCOMING_MESSAGE
     }
 
     public ChatMessage(Type type){

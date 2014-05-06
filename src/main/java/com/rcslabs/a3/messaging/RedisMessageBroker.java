@@ -36,7 +36,7 @@ public class RedisMessageBroker implements IMessageBroker {
         pool = new JedisPool(host, port);
         checkSubscriberThreadsSheduler = Executors.newScheduledThreadPool(1);
         checkSubscriberThreadsSheduler.scheduleAtFixedRate(new CheckSubscribersTimerTask(), 0, 1000, TimeUnit.MILLISECONDS);
-        subscribers = new ConcurrentHashMap<String, RedisSubscriber>();
+        subscribers = new ConcurrentHashMap<>();
 	}
 
     public JedisPool getJedisPool(){
