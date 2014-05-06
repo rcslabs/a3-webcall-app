@@ -31,9 +31,11 @@ public class ChatRoom {
         return label;
     }
 
-    public ChatUser getUser(String username){
+    public ChatUser getUser(String usernameOrSessionId){
         for(ChatUser u : users.getAll()){
-            if(u.getUsername().equals(username)) return u;
+            if(u.getUsername().equals(usernameOrSessionId)) return u;
+            // bold assumption !!!
+            if(u.getSessionId().equals(usernameOrSessionId)) return u;
         }
         return null;
     }
@@ -48,6 +50,7 @@ public class ChatRoom {
     }
 
     public void unjoinUser(String sessionId) {
+        if(!users.has(sessionId)) return;
         users.delete(sessionId);
     }
 }

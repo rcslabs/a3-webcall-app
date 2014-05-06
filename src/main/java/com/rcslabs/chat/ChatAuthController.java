@@ -26,6 +26,9 @@ public class ChatAuthController extends AbstractAuthController {
 
     @Override
     public void closeSession(String sessionId) {
+        ISession session = storage.get(sessionId);
+        if(null == session) return;
         storage.delete(sessionId);
+        super.onSessionClosed(session);
     }
 }

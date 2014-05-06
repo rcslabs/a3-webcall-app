@@ -11,6 +11,8 @@ import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+
 /**
  * Created by sx on 22.04.14.
  */
@@ -23,6 +25,9 @@ public class BaseChatApplication implements IChatApplication {
     protected final IAuthController authController;
     protected final IDataStorage<ChatRoom> rooms;
     protected final IDataStorage<ChatMessage> messages;
+
+    private final String ENTER_ROOM = "ENTER_ROOM";
+    private final String LEAVE_ROOM = "LEAVE_ROOM";
 
     public BaseChatApplication(String messagingChannel, IMessageBroker broker) {
         this.messagingChannel = messagingChannel;
@@ -106,7 +111,9 @@ public class BaseChatApplication implements IChatApplication {
                 break;
 
             case CLOSE_SESSION:
-                authController.closeSession((String) message.get("sessionId"));
+                String sessionId = (String) message.get(MessageProperty.SESSION_ID);
+                closeSessionInternal(sessionId);
+                authController.closeSession(sessionId);
                 break;
 
             default:
@@ -155,10 +162,27 @@ public class BaseChatApplication implements IChatApplication {
 
             room.joinUser(sessionId, username);
             response = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.JOIN_CHATROOM_OK);
+            broker.publish(message.getClientChannel(), response);
+
+            // send message to all users in the room
+            ChatMessage message2 = new ChatMessage(ChatMessage.Type.CHAT_PRESENCE);
+            message2.set(MessageProperty.USERNAME, username);
+            message2.set(MessageProperty.STAGE, ENTER_ROOM);
+            sendMessageForRoom(message2, room);
+
+            // send 'enter' from all users already exist in the room to joined user
+            for(ChatUser u : room.getAllUsers()){
+                ChatMessage message3 = new ChatMessage(ChatMessage.Type.CHAT_PRESENCE);
+                message3.set(MessageProperty.USERNAME, u.getUsername());
+                message3.set(MessageProperty.STAGE, ENTER_ROOM);
+                message3.set(MessageProperty.SESSION_ID, sessionId);
+                message3.set(MessageProperty.ROOM_ID, room.getRoomId());
+                broker.publish(message.getClientChannel(), message3);
+            }
+
         } catch (Exception e){
             log.error(e.getMessage(), e);
             response = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.JOIN_CHATROOM_FAILED);
-        } finally {
             broker.publish(message.getClientChannel(), response);
         }
     }
@@ -172,7 +196,16 @@ public class BaseChatApplication implements IChatApplication {
             }
 
             ChatRoom room = rooms.get(roomId);
-            room.unjoinUser(sessionId);
+            ChatUser user = room.getUser(sessionId);
+
+            if(null != user){
+                room.unjoinUser(sessionId);
+                // send message to all users in the room
+                ChatMessage message2 = new ChatMessage(ChatMessage.Type.CHAT_PRESENCE);
+                message2.set(MessageProperty.USERNAME, user.getUsername());
+                message2.set(MessageProperty.STAGE, LEAVE_ROOM);
+                sendMessageForRoom(message2, room);
+            }
         } catch (Exception e){
             log.error(e.getMessage(), e);
         }
@@ -202,12 +235,8 @@ public class BaseChatApplication implements IChatApplication {
                 throw new RuntimeException("Sender session and user-in-the-room session are not equals!!!");
             }
 
-            for(ChatUser u : room.getAllUsers()){
-                if(u.equals(user)){ continue; }
-                ChatMessage messageTo = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.INCOMING_MESSAGE);
-                messageTo.set(MessageProperty.SESSION_ID, u.getSessionId());
-                broker.publish(messageTo.getClientChannel(), messageTo);
-            }
+            ChatMessage messageTo = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.INCOMING_MESSAGE);
+            sendMessageForRoom(messageTo, room);
 
             messages.set(messageId, message); // TODO: linked set
 
@@ -217,6 +246,30 @@ public class BaseChatApplication implements IChatApplication {
             response = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.CHAT_MESSAGE_FAILED);
         } finally {
             broker.publish(message.getClientChannel(), response);
+        }
+    }
+
+    protected void sendMessageForRoom(ChatMessage message, ChatRoom room){
+        message.set(MessageProperty.ROOM_ID, room.getRoomId());
+        for(ChatUser u : room.getAllUsers()){
+            ChatMessage m = (ChatMessage)message.cloneWithSameType();
+            m.set(MessageProperty.SESSION_ID, u.getSessionId());
+            broker.publish(m.getClientChannel(), m);
+        }
+    }
+
+    protected void closeSessionInternal(String sessionId)
+    {
+        for(ChatRoom r : rooms.getAll()){
+            ChatUser user = r.getUser(sessionId);
+            if(null != user){
+                r.unjoinUser(sessionId);
+                // send message to all users in the room
+                ChatMessage message = new ChatMessage(ChatMessage.Type.CHAT_PRESENCE);
+                message.set(MessageProperty.USERNAME, user.getUsername());
+                message.set(MessageProperty.STAGE, LEAVE_ROOM);
+                sendMessageForRoom(message, r);
+            }
         }
     }
 }
