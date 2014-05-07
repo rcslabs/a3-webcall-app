@@ -1,7 +1,5 @@
 package com.rcslabs.chat;
 
-import com.rcslabs.a3.auth.ISession;
-
 /**
  * Created by sx on 06.05.14.
  */

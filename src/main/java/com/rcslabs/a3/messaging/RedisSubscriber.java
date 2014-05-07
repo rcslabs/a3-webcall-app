@@ -54,7 +54,7 @@ class RedisSubscriber extends JedisPubSub implements Runnable {
         try{
             log.info("recv channel=" + channel + ", message=" + message);
 		    IMessage m = MessageMarshaller.getInstance().fromJson(message);
-            delegate.onMessageReceived(channel, m);
+            if(null != m) delegate.onMessageReceived(channel, m);
         } catch(Exception e){
             log.error("Error on message processing " + message, e);
         }

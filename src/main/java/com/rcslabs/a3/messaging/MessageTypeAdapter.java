@@ -1,6 +1,7 @@
 package com.rcslabs.a3.messaging;
 
 import com.google.gson.*;
+import com.rcslabs.a3.exception.InvalidMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,25 +19,27 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
 
     protected final static Logger log = LoggerFactory.getLogger(MessageTypeAdapter.class);
 
-    private final Map<String, Class> jsonTypeToClassMap  = new ConcurrentHashMap<String, Class>();
+    private final Map<String, Class> jsonTypzToClassMap = new ConcurrentHashMap<String, Class>();
     private final Map<String, Enum>  jsonTypeToEnumTypeMap = new ConcurrentHashMap<String, Enum>();
 
     public void registerClass(Class<?> clazz)
     {
+        String[] t = clazz.getName().split("\\.");
+        jsonTypzToClassMap.put(t[t.length-1], clazz);
+
         Class[] classes = clazz.getDeclaredClasses();
         for(Class c : classes){
             if(c.getName().endsWith("Type")){
                 Object[] enumCnst = c.getEnumConstants();
                 for(Object o : enumCnst){
                     jsonTypeToEnumTypeMap.put(o.toString(), (Enum)o);
-                    jsonTypeToClassMap.put(o.toString(), clazz);
                 }
             }
         }
     }
 
-    IMessage createEmptyMessage(String jsonType) throws Exception {
-        Class<IMessage> clazz = jsonTypeToClassMap.get(jsonType);
+    IMessage createEmptyMessage(String jsonTypz, String jsonType) throws Exception {
+        Class<IMessage> clazz = jsonTypzToClassMap.get(jsonTypz);
         Enum messageType = jsonTypeToEnumTypeMap.get(jsonType);
         return clazz.getConstructor(messageType.getClass()).newInstance(messageType);
     }
@@ -61,6 +64,7 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
         try{
             JsonObject obj = new JsonObject();
             obj.addProperty("type", ((IMessage)src).getType().toString());
+            obj.addProperty("typz", ((IMessage)src).getTypz());
             Iterator it = ((IMessage)src).getData().entrySet().iterator();
 
             while (it.hasNext()) {
@@ -111,8 +115,19 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
             }
         }
 
-        IMessage m = createEmptyMessage((String) map.get("type"));
+        String typz = (String) map.get("typz");
+
+        if(typz == null)
+            throw new InvalidMessageException("Message property 'typz' not defined");
+
+        String type = (String) map.get("type");
+
+        if(type == null)
+            throw new InvalidMessageException("Message property 'type' not defined");
+
+        IMessage m = createEmptyMessage(typz, type);
         for(String key : map.keySet()){
+            if("typz".equals(key)){ continue; }
             if("type".equals(key)){ continue; }
             m.set(key, map.get(key));
         }

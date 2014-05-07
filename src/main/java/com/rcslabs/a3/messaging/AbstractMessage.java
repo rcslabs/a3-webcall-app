@@ -14,8 +14,12 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 
     protected final static Logger log = LoggerFactory.getLogger(AbstractMessage.class);
 
+    // Messages`s class short name (semantic is a type+clazz)
+    private String typz;
+
+    // Message`s concrete type such as START_CALL
 	private T type;
-	
+
 	private Map<String, Object> data;
 	
 	public Map<String, Object> getData() {
@@ -37,7 +41,15 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 	public T getType(){
 		return type;
 	}
-	
+
+    public String getTypz(){
+        if(typz == null){
+            String[] t = getClass().getName().split("\\.");
+            typz = t[t.length-1];
+        }
+        return typz;
+    }
+
 	@Override	
 	public void set(String key, Object value){
 		data.put(key, value);
@@ -65,7 +77,7 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 
     @Override
 	public String toString() {
-		String s = "Message [type=" + type;
+		String s = getTypz()+"."+ type +" [";
 		for(String key : data.keySet()){
 			if(MessageProperty.SDP.equals(key)){ s += ", sdp=..."; continue; }
 			if("type".equals(key)){ continue; }

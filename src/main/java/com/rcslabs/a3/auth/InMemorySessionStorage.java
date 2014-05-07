@@ -3,8 +3,6 @@ package com.rcslabs.a3.auth;
 import com.rcslabs.a3.InMemoryDataStorage;
 
 import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by sx on 17.04.14.

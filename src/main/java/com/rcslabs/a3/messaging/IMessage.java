@@ -12,6 +12,8 @@ public interface IMessage<T extends Enum> extends IDataStorage<Object> {
 	
     T getType();
 
+    String getTypz();
+
     Map<String, Object> getData();
 
 	void set(String key, Object value);

@@ -11,8 +11,6 @@ import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-
 /**
  * Created by sx on 22.04.14.
  */
