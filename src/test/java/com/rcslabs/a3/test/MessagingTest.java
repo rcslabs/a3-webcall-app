@@ -24,7 +24,7 @@ public class MessagingTest {
 
     private static RedisSubscriber subscriber;
 
-    private static final String HOST = "192.168.1.56";
+    private static final String HOST = "192.168.1.200";
     private static final String CHANNEL = "test";
 
     @BeforeClass
