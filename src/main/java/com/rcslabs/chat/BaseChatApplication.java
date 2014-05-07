@@ -215,7 +215,7 @@ public class BaseChatApplication implements IChatApplication {
             String messageId = (String)message.get(MessageProperty.MESSAGE_ID);
             String sessionId = (String)message.get(MessageProperty.SESSION_ID);
             String roomId = (String)message.get(MessageProperty.ROOM_ID);
-            String sender = (String)message.get(MessageProperty.SENDER);
+            String sender = (String)message.get(MessageProperty.USERNAME);
             //String content = (String)message.get(MessageProperty.CONTENT);
 
             if(!rooms.has(roomId)){

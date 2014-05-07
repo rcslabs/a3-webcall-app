@@ -77,12 +77,13 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 
     @Override
 	public String toString() {
-		String s = getTypz()+"."+ type +" [";
+		String s = "["+getTypz()+"."+ type+" ";
 		for(String key : data.keySet()){
-			if(MessageProperty.SDP.equals(key)){ s += ", sdp=..."; continue; }
+			if(MessageProperty.SDP.equals(key)){ s += "sdp=..., "; continue; }
+            if(MessageProperty.CONTENT.equals(key)){ s += "content=..., "; continue; }
 			if("type".equals(key)){ continue; }
 			if("password".equals(key)){ continue; }
-			s += (", " + key + "=" + data.get(key));
+			s += (key + "=" + data.get(key)+", ");
 		}		
 		s += "]";
 		return s; 
