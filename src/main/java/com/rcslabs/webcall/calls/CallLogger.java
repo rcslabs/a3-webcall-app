@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.rcslabs.a3.messaging.RedisConnector;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 public class CallLogger {
 

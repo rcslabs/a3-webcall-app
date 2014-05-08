@@ -1,6 +1,5 @@
 package com.rcslabs.a3.test;
 
-import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 
@@ -35,11 +34,6 @@ public class RedisSubscriber implements IMessageBrokerDelegate{
     public void onMessageReceived(IMessage message) {
         System.out.println(message);
         messages.add(message);
-    }
-
-    @Override
-    public void validateMessage(IMessage message) throws InvalidMessageException {
-
     }
 
     @Override

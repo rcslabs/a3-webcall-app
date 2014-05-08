@@ -1,7 +1,6 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.auth.*;
-import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
@@ -59,12 +58,6 @@ public class SipAuthController extends AbstractAuthController
             handleOnMessageException(message, e);
         }
 	}
-
-    @Override
-    public void validateMessage(IMessage message) throws InvalidMessageException {
-
-    }
-
 
     @Override
     public void handleOnMessageException(IMessage message, Throwable e) {

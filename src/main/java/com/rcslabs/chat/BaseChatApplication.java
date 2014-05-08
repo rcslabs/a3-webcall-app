@@ -62,7 +62,20 @@ public class BaseChatApplication implements IChatApplication {
     public void onMessageReceived(IMessage message)
     {
         try {
-            validateMessage(message);
+            // all messages except START_SESSION must contains parameter "sessionId"
+            // validate it and throws an Exception unsuccessfully
+            if(!message.has(MessageProperty.SESSION_ID)){
+                if(message.getType() != AuthMessage.Type.START_SESSION){
+                    throw new InvalidMessageException("Skip the message without sessionId " + message);
+                }
+            } else {
+                String sessionId = (String)message.get(MessageProperty.SESSION_ID);
+                ISession session = authController.findSession(sessionId);
+                if(null == session){
+                    log.warn("Session for message not found " + message);
+                }
+            }
+
             if(message.getType() instanceof AuthMessage.Type)
                 handleAuthMessage((AuthMessage) message);
             else if(message.getType() instanceof ChatMessage.Type)
@@ -71,25 +84,6 @@ public class BaseChatApplication implements IChatApplication {
                 log.warn("Unhandled message " + message.getType());
         } catch (Exception e) {
             handleOnMessageException(message, e);
-        }
-    }
-
-    @Override
-    public void validateMessage(IMessage message) throws InvalidMessageException
-    {
-        if(message.getType() == AuthMessage.Type.START_SESSION){ return; }
-
-        // all messages except START_SESSION must contains parameter "sessionId"
-        // validate it and throws an Exception unsuccessfully
-
-        if(!message.has(MessageProperty.SESSION_ID)){
-            throw new InvalidMessageException("Skip the message without sessionId " + message);
-        } else {
-            String sessionId = (String)message.get(MessageProperty.SESSION_ID);
-            ISession session = authController.findSession(sessionId);
-            if(null == session){
-                log.warn("Session for message not found " + message);
-            }
         }
     }
 

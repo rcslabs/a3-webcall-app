@@ -1,6 +1,5 @@
 package com.rcslabs.a3;
 
-import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.messaging.IMessage;
