@@ -1,5 +1,6 @@
 package com.rcslabs.a3.config;
 
+import com.rcslabs.a3.messaging.RedisConnector;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
@@ -10,9 +11,9 @@ public class RedisConfigChainHandler extends AbstractConfigChainHandler {
 
     private Jedis jedis;
 
-    public RedisConfigChainHandler(String host, int port){
+    public RedisConfigChainHandler(RedisConnector redisConnector){
         super();
-        jedis = new Jedis(host, port);
+        jedis = redisConnector.getResource();
     }
 
     @Override

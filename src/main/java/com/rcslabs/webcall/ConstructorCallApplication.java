@@ -1,7 +1,7 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBroker;
+import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
@@ -38,9 +38,9 @@ public class ConstructorCallApplication extends BaseCallApplication {
     private final String DURATION_NOTIFICATION_SIPMSG = "durationNotificationSipmessage";
     private final String OPERATOR_ID_PROPERTY = "operatorId";
 
-    public ConstructorCallApplication(String channelName, ICallAppConfig config, IMessageBroker broker, IRclFactory factory)
+    public ConstructorCallApplication(String channelName, ICallAppConfig config, RedisConnector redisConnector, IRclFactory factory)
     {
-        super(channelName, config, broker, factory);
+        super(channelName, config, redisConnector, factory);
 
         try {
             Class.forName("org.postgresql.Driver");
@@ -195,7 +195,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
             IMessage message = new CallMessage(CallMessage.Type.HANGUP_CALL);
             message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
             message.set(MessageProperty.CALL_ID, ctx.getCallId());
-            broker.publish(channelName, message);
+            redisConnector.publish(channelName, message);
         }
     }
 
@@ -216,7 +216,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
             message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
             message.set(MessageProperty.CALL_ID, ctx.getCallId());
             message.set(MessageProperty.TIME_BEFORE_FINISH, timeBeforeFinish);
-            broker.publish(message.getClientChannel(), message);
+            redisConnector.publish(message.getClientChannel(), message);
 
         }
     }

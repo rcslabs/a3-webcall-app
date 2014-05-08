@@ -7,9 +7,8 @@ import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
-import com.rcslabs.a3.messaging.RedisMessageBroker;
+import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.*;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.exception.ServiceNotEnabledException;
@@ -36,7 +35,7 @@ public class BaseCallApplication implements
     protected ICallAppConfig config;
     protected IRclFactory factory;
     protected ICallListener jainSipCallListener;
-    protected IMessageBroker broker;
+    protected RedisConnector redisConnector;
     protected IAuthController authController;
 
     protected Map<String, IMediaPoint> points;
@@ -45,21 +44,21 @@ public class BaseCallApplication implements
 
     protected CallLogger callLogger;
 
-    public BaseCallApplication(String channelName, ICallAppConfig config, IMessageBroker broker, IRclFactory factory)
+    public BaseCallApplication(String channelName, ICallAppConfig config, RedisConnector redisConnector, IRclFactory factory)
     {
         this.channelName = channelName;
-        this.points = new ConcurrentHashMap<String, IMediaPoint>();
-        this.calls = new ConcurrentHashMap<String, ICallContext>();
-        this.sipId2callId = new ConcurrentHashMap<String, String>();
+        this.points = new ConcurrentHashMap<>();
+        this.calls = new ConcurrentHashMap<>();
+        this.sipId2callId = new ConcurrentHashMap<>();
 
         this.config = config;
         this.factory = factory;
-        this.broker = broker;
+        this.redisConnector = redisConnector;
 
         jainSipCallListener = new JainSipCallListener(this);
-        authController = new SipAuthController(config, broker, factory);
+        authController = new SipAuthController(config, redisConnector, factory);
 
-        callLogger = new CallLogger(((RedisMessageBroker)broker).getJedisPool());
+        callLogger = new CallLogger(redisConnector);
     }
 
     @Override
@@ -356,7 +355,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.PROFILE, mp.getProfile());
         message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, sessionId);
-        broker.publish(mp.getMediaContext().getMcChannel(), message);
+        redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
 
         return mp;
     }
@@ -386,7 +385,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, sessionId);
         message.set("dtmf", true);
-        broker.publish(media.getMcChannel(), message);
+        redisConnector.publish(media.getMcChannel(), message);
 
         return mp;
     }
@@ -401,7 +400,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
-        broker.publish(mp.getMediaContext().getMcChannel(), message);
+        redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
     @Override
@@ -414,7 +413,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.ROOM_ID, roomId);
         message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
-        broker.publish(mp.getMediaContext().getMcChannel(), message);
+        redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
         mp.onEvent(new MediaSignal(MediaMessage.Type.JOIN_OK));
     }
@@ -429,7 +428,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.ROOM_ID, roomId);
         message.set(MessageProperty.SENDER, getMessagingChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
-        broker.publish(mp.getMediaContext().getMcChannel(), message);
+        redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
         mp.onEvent(new MediaSignal(MediaMessage.Type.UNJOIN_OK));
     }
@@ -454,7 +453,7 @@ public class BaseCallApplication implements
                     IMessage message = new CallMessage(CallMessage.Type.SEND_DTMF);
                     message.set(MessageProperty.POINT_ID, item.getPointId());
                     message.set(MessageProperty.DTMF, dtmf);
-                    broker.publish(item.getMediaContext().getMcChannel(), message);
+                    redisConnector.publish(item.getMediaContext().getMcChannel(), message);
                 }
             }
         }
@@ -515,7 +514,7 @@ public class BaseCallApplication implements
 
     @Override
     public void onCallStarting(ICallContext ctx, IMessage message) {
-        broker.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_STARTING));
+        redisConnector.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_STARTING));
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_STARTING, ctx));
     }
 
@@ -527,12 +526,12 @@ public class BaseCallApplication implements
         vv.add(ctx.hasVoice());
         vv.add(ctx.hasVideo());
         message2.set(MessageProperty.VOICE_VIDEO, vv);
-        broker.publish(message.getClientChannel(), message2);
+        redisConnector.publish(message.getClientChannel(), message2);
     }
 
     @Override
     public void onCallStarted(ICallContext ctx, IMessage message) {
-        broker.publish(message.getClientChannel(), message.cloneWithSameType());
+        redisConnector.publish(message.getClientChannel(), message.cloneWithSameType());
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_STARTED, ctx));
         // it was a SIP call? Find media point and set state
         MediaMessage sipSdpAnswerMessage = (MediaMessage)(message.cloneWithAnyType(MediaMessage.Type.SDP_ANSWER));
@@ -547,7 +546,7 @@ public class BaseCallApplication implements
 
     @Override
     public void onCallFinished(ICallContext ctx, IMessage message) {
-        broker.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_FINISHED));
+        redisConnector.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_FINISHED));
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FINISHED, ctx));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
@@ -555,7 +554,7 @@ public class BaseCallApplication implements
 
     @Override
     public void onCallFailed(ICallContext ctx, IMessage message) {
-        broker.publish(message.getClientChannel(), message.cloneWithSameType());
+        redisConnector.publish(message.getClientChannel(), message.cloneWithSameType());
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FAILED, ctx, ""+message.get(MessageProperty.REASON)));
         stopMedia(ctx.getCallId());
         removeCallContext(ctx.getCallId());
@@ -575,14 +574,14 @@ public class BaseCallApplication implements
     public void onSdpOffererReceived(IMediaPoint mp, IMessage message) {
         // WRTC - send to client
         if(mp instanceof WRTCMediaPoint){
-            broker.publish(message.getClientChannel(), message);
+            redisConnector.publish(message.getClientChannel(), message);
 
         }else if(mp instanceof SIPMediaPoint){
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
                 IMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
-                broker.publish(message.getClientChannel(), message2);
+                redisConnector.publish(message.getClientChannel(), message2);
                 return;
             }
             startCall(ctx, (String)message.get(MessageProperty.SDP));
@@ -592,7 +591,7 @@ public class BaseCallApplication implements
     @Override
     public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
         message.set(MessageProperty.SENDER, getMessagingChannel());
-        broker.publish(mp.getMediaContext().getMcChannel(), message);
+        redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
     @Override
@@ -606,7 +605,7 @@ public class BaseCallApplication implements
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
                 IMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
-                broker.publish(message.getClientChannel(), message2);
+                redisConnector.publish(message.getClientChannel(), message2);
                 return;
             }
 

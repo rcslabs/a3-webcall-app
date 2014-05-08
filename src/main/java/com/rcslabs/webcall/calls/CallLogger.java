@@ -2,6 +2,7 @@ package com.rcslabs.webcall.calls;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.rcslabs.a3.messaging.RedisConnector;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -14,23 +15,23 @@ public class CallLogger {
         gson = gsonBuilder.create();
     }
 
-    private JedisPool jedisPool;
+    private RedisConnector redisConnector;
 
-    public CallLogger(JedisPool jedisPool){
-        this.jedisPool = jedisPool;
+    public CallLogger(RedisConnector redisConnector){
+        this.redisConnector = redisConnector;
     }
 
     public void push(CallLogEntry item){
         Jedis jedis = null;
         try{
-            jedis = jedisPool.getResource();
+            jedis = redisConnector.getResource();
             jedis.ping();
             String json = gson.toJson(item);
             jedis.publish("log:calls", json);
             jedis.rpush("log:calls", json);
-            jedisPool.returnResource(jedis);
+            redisConnector.returnResource(jedis);
         } catch (Exception e){
-            jedisPool.returnBrokenResource(jedis);
+            redisConnector.returnBrokenResource(jedis);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.rcslabs.a3.config;
 
+import com.rcslabs.a3.messaging.RedisConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,11 +8,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
-public abstract class AbstractConfig implements IConfigChainHandler {
+public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
 
 	protected final static Logger log = LoggerFactory.getLogger(AbstractConfig.class);
 
 	private AbstractConfigChainHandler firstHandler;
+    private ArgsConfigChainHandler argsHandler;
+    private FileConfigChainHandler fileHandler;
+    private DefaultsConfigChainHandler defaultsHandler;
+    private RedisConfigChainHandler redisHandler;
 
 	public AbstractConfig(){
         Properties args = new Properties();
@@ -24,9 +29,9 @@ public abstract class AbstractConfig implements IConfigChainHandler {
 		}
 
         // init chain handlers
-        AbstractConfigChainHandler argsHandler = new ArgsConfigChainHandler();
-        FileConfigChainHandler fileHandler = new FileConfigChainHandler();
-        DefaultsConfigChainHandler defaultsHandler = new DefaultsConfigChainHandler();
+        argsHandler = new ArgsConfigChainHandler();
+        fileHandler = new FileConfigChainHandler();
+        defaultsHandler = new DefaultsConfigChainHandler();
 		if(args.containsKey("config")){
             fileHandler.readFile(args.getProperty("config"));
 		}
@@ -34,13 +39,15 @@ public abstract class AbstractConfig implements IConfigChainHandler {
         argsHandler.setNext(fileHandler);
         fileHandler.setNext(defaultsHandler);
         this.firstHandler = argsHandler;
+	}
 
-        RedisConfigChainHandler redisHandler = new RedisConfigChainHandler(getMessagingHostInternal(), getMessagingPortInternal());
+    public void initWithRedis(RedisConnector redisConnector){
+        redisHandler = new RedisConfigChainHandler(redisConnector);
         // create chain again :)
         argsHandler.setNext(redisHandler);
         redisHandler.setNext(fileHandler);
         fileHandler.setNext(defaultsHandler);
-	}
+    }
 
     @Override
     public void setNext(IConfigChainHandler next) {
@@ -62,26 +69,14 @@ public abstract class AbstractConfig implements IConfigChainHandler {
         return firstHandler.getPropertyAsString(key);
     }
 
-    protected String getMessagingHostInternal() {
-        String mb = getPropertyAsString("messaging-uri");
+    @Override
+    public URI getRedisUri() {
+        String mb = getPropertyAsString("redis-uri");
         if(null == mb){ return null; }
         try {
-            URI u = new URI(mb);
-            return u.getHost();
+            return new URI(mb);
         } catch (URISyntaxException e) {
-            log.error("Error parse messaging URI: " + e.getMessage());
-        }
-        return null;
-    }
-
-    protected Integer getMessagingPortInternal() {
-        String mb = getPropertyAsString("messaging-uri");
-        if(null == mb){ return null; }
-        try {
-            URI u = new URI(mb);
-            return (-1 == u.getPort() ? 6379 : u.getPort());
-        } catch (URISyntaxException e) {
-            log.error("Error parse messaging URI: " + e.getMessage());
+            log.error("Error parse Redis URI: " + e.getMessage());
         }
         return null;
     }

@@ -1,9 +1,13 @@
 package com.rcslabs.a3.config;
 
+import com.rcslabs.a3.messaging.RedisConnector;
+
+import java.net.URI;
+
 /**
  * Created by sx on 22.04.14.
  */
 public interface IConfig {
-    public String getMessagingHost();
-    public Integer getMessagingPort();
+    public URI getRedisUri();
+    public void initWithRedis(RedisConnector redisConnector);
 }

@@ -6,6 +6,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -13,9 +14,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
-public class RedisMessageBroker implements IMessageBroker {
+public class RedisConnector implements IMessageBroker {
 
-	protected final static Logger log = LoggerFactory.getLogger(RedisMessageBroker.class);
+	protected final static Logger log = LoggerFactory.getLogger(RedisConnector.class);
 	
 	private Map<String, RedisSubscriber> subscribers;
 	private JedisPool pool;
@@ -23,24 +24,24 @@ public class RedisMessageBroker implements IMessageBroker {
     private ScheduledExecutorService checkSubscriberThreadsSheduler;
     private boolean connected;
 
-	public RedisMessageBroker(){
-		this("localhost", Protocol.DEFAULT_PORT);
-	}
-
-	public RedisMessageBroker(String host){
-		this(host, Protocol.DEFAULT_PORT);
-	}
-
-	public RedisMessageBroker(String host, int port){
+	public RedisConnector(URI uri){
 		super();
-        pool = new JedisPool(host, port);
+        pool = new JedisPool(uri.getHost(), (-1 == uri.getPort() ? Protocol.DEFAULT_PORT : uri.getPort()));
         checkSubscriberThreadsSheduler = Executors.newScheduledThreadPool(1);
         checkSubscriberThreadsSheduler.scheduleAtFixedRate(new CheckSubscribersTimerTask(), 0, 1000, TimeUnit.MILLISECONDS);
         subscribers = new ConcurrentHashMap<>();
 	}
 
-    public JedisPool getJedisPool(){
-        return pool;
+    public Jedis getResource(){
+        return pool.getResource();
+    }
+
+    public void returnResource(Jedis resource){
+        pool.returnResource(resource);
+    }
+
+    public void returnBrokenResource(Jedis resource){
+        pool.returnBrokenResource(resource);
     }
 
     class CheckSubscribersTimerTask implements Runnable {

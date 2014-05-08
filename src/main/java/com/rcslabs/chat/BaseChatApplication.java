@@ -6,7 +6,7 @@ import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBroker;
+import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public class BaseChatApplication implements IChatApplication {
     protected final static Logger log = LoggerFactory.getLogger(BaseChatApplication.class);
 
     protected final String messagingChannel;
-    protected final IMessageBroker broker;
+    protected final RedisConnector redisConnector;
     protected final IAuthController authController;
     protected final IDataStorage<ChatRoom> rooms;
     protected final IDataStorage<ChatMessage> messages;
@@ -27,12 +27,12 @@ public class BaseChatApplication implements IChatApplication {
     private final String ENTER_ROOM = "ENTER_ROOM";
     private final String LEAVE_ROOM = "LEAVE_ROOM";
 
-    public BaseChatApplication(String messagingChannel, IMessageBroker broker) {
+    public BaseChatApplication(String messagingChannel, RedisConnector redisConnector) {
         this.messagingChannel = messagingChannel;
-        this.broker = broker;
+        this.redisConnector = redisConnector;
         this.rooms = new InMemoryDataStorage<>();
         this.messages = new InMemoryDataStorage<>();
-        this.authController = new ChatAuthController(broker, new InMemorySessionStorage(), 3600);
+        this.authController = new ChatAuthController(redisConnector, new InMemorySessionStorage(), 3600);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class BaseChatApplication implements IChatApplication {
 
             room.joinUser(sessionId, username);
             response = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.JOIN_CHATROOM_OK);
-            broker.publish(message.getClientChannel(), response);
+            redisConnector.publish(message.getClientChannel(), response);
 
             // send message to all users in the room
             ChatMessage message2 = new ChatMessage(ChatMessage.Type.CHAT_PRESENCE);
@@ -175,13 +175,13 @@ public class BaseChatApplication implements IChatApplication {
                 message3.set(MessageProperty.STAGE, ENTER_ROOM);
                 message3.set(MessageProperty.SESSION_ID, sessionId);
                 message3.set(MessageProperty.ROOM_ID, room.getRoomId());
-                broker.publish(message.getClientChannel(), message3);
+                redisConnector.publish(message.getClientChannel(), message3);
             }
 
         } catch (Exception e){
             log.error(e.getMessage(), e);
             response = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.JOIN_CHATROOM_FAILED);
-            broker.publish(message.getClientChannel(), response);
+            redisConnector.publish(message.getClientChannel(), response);
         }
     }
 
@@ -243,7 +243,7 @@ public class BaseChatApplication implements IChatApplication {
             log.error(e.getMessage(), e);
             response = (ChatMessage)message.cloneWithAnyType(ChatMessage.Type.CHAT_MESSAGE_FAILED);
         } finally {
-            broker.publish(message.getClientChannel(), response);
+            redisConnector.publish(message.getClientChannel(), response);
         }
     }
 
@@ -252,7 +252,7 @@ public class BaseChatApplication implements IChatApplication {
         for(ChatUser u : room.getAllUsers()){
             ChatMessage m = (ChatMessage)message.cloneWithSameType();
             m.set(MessageProperty.SESSION_ID, u.getSessionId());
-            broker.publish(m.getClientChannel(), m);
+            redisConnector.publish(m.getClientChannel(), m);
         }
     }
 

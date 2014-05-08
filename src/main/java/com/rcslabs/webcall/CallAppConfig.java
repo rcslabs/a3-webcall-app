@@ -67,20 +67,10 @@ public class CallAppConfig extends AbstractConfig implements ICallAppConfig {
     }
 
     @Override
-    public String getMessagingHost() {
-        return getMessagingHostInternal();
-    }
-
-    @Override
-    public Integer getMessagingPort() {
-        return getMessagingPortInternal();
-    }
-
-    @Override
     public String toString() {
         String res = "CallAppConfig [";
         try {
-            Method[] m = CallAppConfig.class.getDeclaredMethods();
+            Method[] m = CallAppConfig.class.getMethods();
             for (int i = 0; i < m.length; i++) {
                 if(0 != m[i].getName().indexOf("get")){ continue; }
                 String key = m[i].getName().substring(3);

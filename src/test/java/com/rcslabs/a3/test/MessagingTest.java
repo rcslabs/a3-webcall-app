@@ -3,7 +3,7 @@ package com.rcslabs.a3.test;
 import com.rcslabs.a3.auth.AuthMessage;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.MessageMarshaller;
-import com.rcslabs.a3.messaging.RedisMessageBroker;
+import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.chat.ChatMessage;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.webcall.media.MediaMessage;
@@ -11,6 +11,7 @@ import org.junit.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class MessagingTest {
 
-    private static RedisMessageBroker broker;
+    private static RedisConnector redisConnector;
 
     private static RedisSubscriber subscriber;
 
@@ -29,9 +30,9 @@ public class MessagingTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        broker = new RedisMessageBroker(HOST);
+        redisConnector = new RedisConnector(new URI(HOST));
         subscriber = new RedisSubscriber();
-        broker.subscribe(CHANNEL, subscriber);
+        redisConnector.subscribe(CHANNEL, subscriber);
 
         MessageMarshaller m = MessageMarshaller.getInstance();
         m.registerMessageClass(AuthMessage.class);
@@ -43,7 +44,7 @@ public class MessagingTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        broker.unubscribe(CHANNEL);
+        redisConnector.unubscribe(CHANNEL);
     }
 
     @Before
@@ -117,7 +118,7 @@ public class MessagingTest {
             for(Object t : classTypesEnum){
                 Constructor<?> cnst = clazz.getConstructor(t.getClass());
                 IMessage aMessage = (IMessage)cnst.newInstance(t);
-                broker.publish(CHANNEL, aMessage);
+                redisConnector.publish(CHANNEL, aMessage);
             }
         } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e){
             Assert.fail();
