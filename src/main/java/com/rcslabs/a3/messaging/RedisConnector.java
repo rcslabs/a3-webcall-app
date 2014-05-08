@@ -76,14 +76,14 @@ public class RedisConnector implements IMessageBroker {
 	}
 
     @Override
-	public void subscribe(final String channel, IMessageBrokerDelegate delegate) {
+	public void subscribe(IMessageBrokerDelegate delegate) {
 		log.info("Subscribe to " + delegate.getChannel());
         subscribers.put(delegate.getChannel(), new RedisSubscriber(pool, delegate));
 	}
 
     @Override
-	public void unubscribe(String channel) {
-        RedisSubscriber subscriber = subscribers.remove(channel);
+	public void unubscribe(IMessageBrokerDelegate delegate) {
+        RedisSubscriber subscriber = subscribers.remove(delegate.getChannel());
 		subscriber.dispose();
 	}
 }

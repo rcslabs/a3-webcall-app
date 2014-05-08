@@ -32,7 +32,7 @@ public class MessagingTest {
     public static void setUpClass() throws Exception {
         redisConnector = new RedisConnector(new URI(HOST));
         subscriber = new RedisSubscriber();
-        redisConnector.subscribe(CHANNEL, subscriber);
+        redisConnector.subscribe(subscriber);
 
         MessageMarshaller m = MessageMarshaller.getInstance();
         m.registerMessageClass(AuthMessage.class);
@@ -44,7 +44,7 @@ public class MessagingTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        redisConnector.unubscribe(CHANNEL);
+        redisConnector.unubscribe(subscriber);
     }
 
     @Before

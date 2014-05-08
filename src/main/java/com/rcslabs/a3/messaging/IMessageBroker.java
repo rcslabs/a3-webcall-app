@@ -4,7 +4,7 @@ public interface IMessageBroker {
 
 	public abstract void publish(String channel, IMessage message);
 
-	public abstract void subscribe(String channel, IMessageBrokerDelegate delegate);
+	public abstract void subscribe(IMessageBrokerDelegate delegate);
 	
-	public abstract void unubscribe(String channel);
+	public abstract void unubscribe(IMessageBrokerDelegate delegate);
 }

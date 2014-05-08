@@ -55,24 +55,14 @@ public class WebcallApp{
 
             JainSipRclFactory factory = new JainSipRclFactory(params);
 
-            registerApplication(new ConstructorCallApplication("constructor", config, redisConnector, factory));
-            registerApplication(new BaseCallApplication("click2call", config, redisConnector, factory));
-            registerApplication(new BaseChatApplication("chat", redisConnector));
+            redisConnector.subscribe(new ConstructorCallApplication("constructor", config, redisConnector, factory));
+            redisConnector.subscribe(new BaseCallApplication("click2call", config, redisConnector, factory));
+            redisConnector.subscribe(new BaseChatApplication("chat", redisConnector));
 		}catch(Exception e){
             log.error("Unhandled exception in main. Application will be exit.", e);
 			return; 
 		}
 	}
-
-    void registerApplication(IApplication app)
-    {
-        if(app.ready()){
-            log.info("Register " + app.getClass() + " for channel " + app.getChannel());
-            redisConnector.subscribe(app.getChannel(), app);
-        } else {
-            log.error("Unable to register " + app.getClass() + " for channel " + app.getChannel());
-        }
-    }
 
 	public static void main(String[] args) {	
 		try {			
