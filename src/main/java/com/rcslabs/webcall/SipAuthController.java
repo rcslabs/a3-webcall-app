@@ -31,11 +31,16 @@ public class SipAuthController extends AbstractAuthController
         this.factory = factory;
 	}
 
-	/**
+    /**
 	 * IMessageBrokerDelegate implementation 
 	 */
-	
-	public void onMessageReceived(String channel, IMessage message)
+
+    @Override
+    public String getChannel() {
+        return "auth:sip";
+    }
+
+	public void onMessageReceived(IMessage message)
 	{
         try{
             if(AuthMessage.Type.START_SESSION == message.getType()){

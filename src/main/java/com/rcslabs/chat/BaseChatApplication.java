@@ -41,8 +41,8 @@ public class BaseChatApplication implements IChatApplication {
     }
 
     @Override
-    public IAuthController getAuthController() {
-        return authController;
+    public ISession findSession(String value) {
+        return authController.findSession(value);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class BaseChatApplication implements IChatApplication {
     }
 
     @Override
-    public String getMessagingChannel() {
+    public String getChannel() {
         return messagingChannel;
     }
 
@@ -59,7 +59,7 @@ public class BaseChatApplication implements IChatApplication {
     public void beforeStartSession(IMessage message) throws Exception {}
 
     @Override
-    public void onMessageReceived(String channel, IMessage message)
+    public void onMessageReceived(IMessage message)
     {
         try {
             validateMessage(message);

@@ -27,7 +27,12 @@ public class RedisSubscriber implements IMessageBrokerDelegate{
     }
 
     @Override
-    public void onMessageReceived(String channel, IMessage message) {
+    public String getChannel() {
+        return "test";
+    }
+
+    @Override
+    public void onMessageReceived(IMessage message) {
         System.out.println(message);
         messages.add(message);
     }

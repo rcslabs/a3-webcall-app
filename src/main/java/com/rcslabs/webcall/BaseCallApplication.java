@@ -67,16 +67,16 @@ public class BaseCallApplication implements
     }
 
     @Override
-    public void onMessageReceived(String channel, IMessage message)
+    public void onMessageReceived(IMessage message)
     {
         try {
             validateMessage(message);
             if(message.getType() instanceof AuthMessage.Type)
-                handleAuthMessage(channel, (AuthMessage)message);
+                handleAuthMessage((AuthMessage)message);
             else if(message.getType() instanceof CallMessage.Type)
-                handleCallMessage(channel, (CallMessage) message);
+                handleCallMessage((CallMessage) message);
             else if(message.getType() instanceof MediaMessage.Type)
-                handleMediaMessage(channel, (MediaMessage)message);
+                handleMediaMessage((MediaMessage)message);
             else
                 log.warn("Unhandled message " + message.getType());
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public class BaseCallApplication implements
         }
     }
 
-    protected void handleAuthMessage(String channel, AuthMessage message)
+    protected void handleAuthMessage(AuthMessage message)
             throws Exception
     {
         switch (message.getType()) {
@@ -111,12 +111,12 @@ public class BaseCallApplication implements
             case START_SESSION:
                 beforeStartSession(message);
             case CLOSE_SESSION:
-                ((SipAuthController)authController).onMessageReceived(channel, message);
+                ((SipAuthController)authController).onMessageReceived(message);
                 break;
         }
     }
 
-    protected void handleCallMessage(String channel, CallMessage message)
+    protected void handleCallMessage(CallMessage message)
             throws Exception
     {
         ICallContext ctx;
@@ -173,7 +173,7 @@ public class BaseCallApplication implements
         }
     }
 
-    protected void handleMediaMessage(String channel, MediaMessage message)
+    protected void handleMediaMessage(MediaMessage message)
             throws Exception
     {
         switch (message.getType())
@@ -217,12 +217,12 @@ public class BaseCallApplication implements
     }
 
     @Override
-    public IAuthController getAuthController() {
-        return authController;
+    public ISession findSession(String value) {
+        return authController.findSession(value);
     }
 
     @Override
-    public String getMessagingChannel() {
+    public String getChannel() {
         return channelName;
     }
 
@@ -240,7 +240,7 @@ public class BaseCallApplication implements
             if(0 != config.getSipServerPort() && 5060 != config.getSipServerPort()){
                 sipAddr += (":"+config.getSipServerPort());
             }
-            ISession session = getAuthController().findSession((String)message.get(MessageProperty.SESSION_ID));
+            ISession session = findSession((String)message.get(MessageProperty.SESSION_ID));
 
             String sessionId = (String)message.get(MessageProperty.SESSION_ID);
             String callId = UUID.randomUUID().toString();
@@ -301,7 +301,7 @@ public class BaseCallApplication implements
     {
         String aUri = ctx.getA();
         String bUri = ctx.getB();
-        String jsipConnId = getAuthController().findSession(ctx.getSessionId()).getSessionId();
+        String jsipConnId = findSession(ctx.getSessionId()).getSessionId();
 
         log.info("Start SIP call "+ctx.getCallId()+" "+aUri+" -> "+bUri);
 
@@ -353,7 +353,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
         message.set(MessageProperty.POINT_ID, mp.getPointId());
         message.set(MessageProperty.PROFILE, mp.getProfile());
-        message.set(MessageProperty.SENDER, getMessagingChannel());
+        message.set(MessageProperty.SENDER, getChannel());
         message.set(MessageProperty.SESSION_ID, sessionId);
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
 
@@ -382,7 +382,7 @@ public class BaseCallApplication implements
         message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
         message.set(MessageProperty.POINT_ID, mp.getPointId());
         message.set(MessageProperty.PROFILE, mp.getProfile());
-        message.set(MessageProperty.SENDER, getMessagingChannel());
+        message.set(MessageProperty.SENDER, getChannel());
         message.set(MessageProperty.SESSION_ID, sessionId);
         message.set("dtmf", true);
         redisConnector.publish(media.getMcChannel(), message);
@@ -398,7 +398,7 @@ public class BaseCallApplication implements
 
         IMessage message = new MediaMessage(MediaMessage.Type.REMOVE_MEDIA_POINT);
         message.set(MessageProperty.POINT_ID, pointId);
-        message.set(MessageProperty.SENDER, getMessagingChannel());
+        message.set(MessageProperty.SENDER, getChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
     }
@@ -411,7 +411,7 @@ public class BaseCallApplication implements
         IMessage message = new MediaMessage(MediaMessage.Type.JOIN_ROOM);
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.ROOM_ID, roomId);
-        message.set(MessageProperty.SENDER, getMessagingChannel());
+        message.set(MessageProperty.SENDER, getChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
@@ -426,7 +426,7 @@ public class BaseCallApplication implements
         IMessage message = new MediaMessage(MediaMessage.Type.UNJOIN_ROOM);
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.ROOM_ID, roomId);
-        message.set(MessageProperty.SENDER, getMessagingChannel());
+        message.set(MessageProperty.SENDER, getChannel());
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
@@ -590,7 +590,7 @@ public class BaseCallApplication implements
 
     @Override
     public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
-        message.set(MessageProperty.SENDER, getMessagingChannel());
+        message.set(MessageProperty.SENDER, getChannel());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
     }
 

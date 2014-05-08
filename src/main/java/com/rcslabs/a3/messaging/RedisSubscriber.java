@@ -16,10 +16,10 @@ class RedisSubscriber extends JedisPubSub implements Runnable {
     private Jedis jedis;
     private Thread thread;
 
-    public RedisSubscriber(JedisPool pool, String channelName, IMessageBrokerDelegate delegate){
+    public RedisSubscriber(JedisPool pool, IMessageBrokerDelegate delegate){
         super();
         this.pool = pool;
-        this.channelName = channelName;
+        this.channelName = delegate.getChannel();
 		this.delegate = delegate;
 	}
 
@@ -54,7 +54,7 @@ class RedisSubscriber extends JedisPubSub implements Runnable {
         try{
             log.info("recv channel=" + channel + ", message=" + message);
 		    IMessage m = MessageMarshaller.getInstance().fromJson(message);
-            if(null != m) delegate.onMessageReceived(channel, m);
+            if(null != m) delegate.onMessageReceived(m);
         } catch(Exception e){
             log.error("Error on message processing " + message, e);
         }

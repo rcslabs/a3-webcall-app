@@ -67,10 +67,10 @@ public class WebcallApp{
     void registerApplication(IApplication app)
     {
         if(app.ready()){
-            log.info("Register " + app.getClass() + " for channel " + app.getMessagingChannel());
-            redisConnector.subscribe(app.getMessagingChannel(), app);
+            log.info("Register " + app.getClass() + " for channel " + app.getChannel());
+            redisConnector.subscribe(app.getChannel(), app);
         } else {
-            log.error("Unable to register " + app.getClass() + " for channel " + app.getMessagingChannel());
+            log.error("Unable to register " + app.getClass() + " for channel " + app.getChannel());
         }
     }
 
