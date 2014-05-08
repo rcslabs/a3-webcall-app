@@ -1,7 +1,9 @@
 package com.rcslabs.a3.auth;
 
+import com.rcslabs.a3.AbstractController;
+import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBroker;
+import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,18 +11,31 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by sx on 22.04.14.
  */
-public abstract class AbstractAuthController implements IAuthController {
+public abstract class AbstractAuthController extends AbstractController implements IAuthController {
 
     protected final static Logger log = LoggerFactory.getLogger(AbstractAuthController.class);
-
-    protected final IMessageBroker broker;
     protected final ISessionStorage storage;
-    protected int ttl;
 
-    public AbstractAuthController(IMessageBroker broker, ISessionStorage storage, int timeToLive){
-        this.broker = broker;
+    public AbstractAuthController(String channel, RedisConnector redisConnector, ISessionStorage storage){
+        super(channel, redisConnector);
         this.storage = storage;
-        this.ttl = timeToLive;
+    }
+
+    @Override
+    public void onMessageReceived(IMessage message) {
+        try{
+            if(!(message instanceof AuthMessage)){
+                throw new InvalidMessageException("Expected AuthMessage");
+            }
+            onAuthMessage((AuthMessage)message);
+        } catch (Exception e){
+            handleOnMessageException(message, e);
+        }
+    }
+
+    @Override
+    public void handleOnMessageException(IMessage message, Throwable e) {
+        log.error(e.getMessage(), e);
     }
 
     @Override
@@ -43,7 +58,7 @@ public abstract class AbstractAuthController implements IAuthController {
         message.set(MessageProperty.SERVICE, session.getService());
         message.set(MessageProperty.SESSION_ID, session.getSessionId());
         message.set(MessageProperty.CLIENT_ID, session.getClientId());
-        broker.publish(session.getSender(), message);
+        redisConnector.publish(session.getSender(), message);
     }
 
     @Override
@@ -55,7 +70,7 @@ public abstract class AbstractAuthController implements IAuthController {
         message.set(MessageProperty.SESSION_ID, session.getSessionId());
         message.set(MessageProperty.CLIENT_ID, session.getClientId());
         message.set(MessageProperty.REASON, reason);
-        broker.publish(session.getSender(), message);
+        redisConnector.publish(session.getSender(), message);
     }
 
     @Override
@@ -66,6 +81,6 @@ public abstract class AbstractAuthController implements IAuthController {
         message.set(MessageProperty.SERVICE, session.getService());
         message.set(MessageProperty.SESSION_ID, session.getSessionId());
         message.set(MessageProperty.CLIENT_ID, session.getClientId());
-        broker.publish(session.getSender(), message);
+        redisConnector.publish(session.getSender(), message);
     }
 }

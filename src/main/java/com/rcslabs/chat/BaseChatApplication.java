@@ -32,7 +32,7 @@ public class BaseChatApplication implements IChatApplication {
         this.redisConnector = redisConnector;
         this.rooms = new InMemoryDataStorage<>();
         this.messages = new InMemoryDataStorage<>();
-        this.authController = new ChatAuthController(redisConnector, new InMemorySessionStorage(), 3600);
+        this.authController = new ChatAuthController(redisConnector, new InMemorySessionStorage());
     }
 
     @Override

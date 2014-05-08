@@ -36,7 +36,7 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
         this.clientId = clientId;
         this.sender = sender;
 		stime = new Date().getTime();
-		data = new HashMap<String, Object>();
+		data = new HashMap<>();
 		state = State.INIT;
 	}
 

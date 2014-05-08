@@ -2,6 +2,8 @@ package com.rcslabs.a3.auth;
 
 public interface IAuthController {
 
+    void onAuthMessage(AuthMessage message);
+
 	void startSession(ISession session);
 	
 	void closeSession(String sessionId);

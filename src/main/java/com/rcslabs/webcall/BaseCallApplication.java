@@ -56,7 +56,7 @@ public class BaseCallApplication implements
         this.redisConnector = redisConnector;
 
         jainSipCallListener = new JainSipCallListener(this);
-        authController = new SipAuthController(config, redisConnector, factory);
+        authController = new SipAuthController("auth:sip", config, redisConnector, factory);
 
         callLogger = new CallLogger(redisConnector);
     }
@@ -79,17 +79,17 @@ public class BaseCallApplication implements
                 }
             } else {
                 String sessionId = (String)message.get(MessageProperty.SESSION_ID);
-                ISession session = authController.findSession(sessionId);
+                ISession session = findSession(sessionId);
                 if(null == session){
-                    log.warn("Session for message not found " + message);
+                    throw new InvalidMessageException("Session not found " + sessionId);
                 }
             }
 
-            if(message.getType() instanceof AuthMessage.Type)
-                handleAuthMessage((AuthMessage)message);
-            else if(message.getType() instanceof CallMessage.Type)
+            if(message instanceof AuthMessage)
+                handleAuthMessage((AuthMessage) message);
+            else if(message instanceof CallMessage)
                 handleCallMessage((CallMessage) message);
-            else if(message.getType() instanceof MediaMessage.Type)
+            else if(message instanceof MediaMessage)
                 handleMediaMessage((MediaMessage)message);
             else
                 log.warn("Unhandled message " + message.getType());
@@ -101,12 +101,14 @@ public class BaseCallApplication implements
     protected void handleAuthMessage(AuthMessage message)
             throws Exception
     {
+
         switch (message.getType()) {
             // auth messages
             case START_SESSION:
-                beforeStartSession(message);
+                beforeStartSession(message); 
             case CLOSE_SESSION:
                 ((SipAuthController)authController).onMessageReceived(message);
+                // TODO: redisConnector.publish("auth:sip", message);
                 break;
         }
     }

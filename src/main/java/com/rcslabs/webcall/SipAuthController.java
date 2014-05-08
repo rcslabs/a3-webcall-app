@@ -2,8 +2,8 @@ package com.rcslabs.webcall;
 
 import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBroker;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
+import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.rcl.JainSipCall;
 import com.rcslabs.rcl.core.IConnection;
 import com.rcslabs.rcl.core.IConnectionListener;
@@ -24,50 +24,32 @@ public class SipAuthController extends AbstractAuthController
 	protected ICallAppConfig config;
     protected IRclFactory factory;
 
-	public SipAuthController(ICallAppConfig config, IMessageBroker broker, IRclFactory factory) {
-		super(broker, new InMemorySessionStorage(), config.getSipExpires());
+	public SipAuthController(String channel, ICallAppConfig config, RedisConnector broker, IRclFactory factory) {
+		super(channel, broker, new InMemorySessionStorage());
         this.config = config;
         this.factory = factory;
 	}
 
     /**
-	 * IMessageBrokerDelegate implementation 
-	 */
-
-    @Override
-    public String getChannel() {
-        return "auth:sip";
-    }
-
-	public void onMessageReceived(IMessage message)
-	{
-        try{
-            if(AuthMessage.Type.START_SESSION == message.getType()){
-                startSession(new Session((AuthMessage)message));
-
-            }else if(AuthMessage.Type.CLOSE_SESSION == message.getType()){
-                String p0 = (String) message.get(MessageProperty.SESSION_ID);
-                ISession session = findSession(p0);
-                if(null == session){
-                    log.warn("Session not found for id=" + p0);
-                }else{
-                    closeSession(p0);
-                }
-            }
-        } catch(Exception e){
-            handleOnMessageException(message, e);
-        }
-	}
-
-    @Override
-    public void handleOnMessageException(IMessage message, Throwable e) {
-        log.error(e.getMessage(), e);
-    }
-
-    /**
 	 * IAuthService implementation 
 	 */
-	
+
+    @Override
+    public void onAuthMessage(AuthMessage message) {
+        if(AuthMessage.Type.START_SESSION == message.getType()){
+            startSession(new Session(message));
+
+        }else if(AuthMessage.Type.CLOSE_SESSION == message.getType()){
+            String p0 = (String) message.get(MessageProperty.SESSION_ID);
+            ISession session = findSession(p0);
+            if(null == session){
+                log.warn("Session not found for id=" + p0);
+            }else{
+                closeSession(p0);
+            }
+        }
+    }
+
 	public void startSession(ISession session) 
 	{
 		try{
@@ -77,12 +59,11 @@ public class SipAuthController extends AbstractAuthController
 		
 			ConnectionParams connParams = new ConnectionParams();
 			connParams.setPhoneNumber(session.getUsername());
-			//connParams.setUserName(session.getUsername());
 			connParams.setPassword(session.getPassword());
 			connParams.setPresenceEnabled(false);		
 
 			((Session)session).setSessionId(conn.getId());
-			storage.set(conn.getId(), ((Session) session));
+			storage.set(conn.getId(), session);
 			
 			conn.open(connParams);			
 		}catch(Exception e){
@@ -241,7 +222,7 @@ public class SipAuthController extends AbstractAuthController
             message.set(MessageProperty.A_URI, prepareCallUri(((ICallParams)call).getFrom()));
             message.set(MessageProperty.B_URI, prepareCallUri(((ICallParams)call).getTo()));
             message.set(MessageProperty.SDP, ((JainSipCall)call).getSdpObject().getOfferer());
-            broker.publish(session.getService(), message);
+            redisConnector.publish(session.getService(), message);
         }
 	}
 

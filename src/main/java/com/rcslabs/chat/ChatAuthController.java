@@ -1,10 +1,8 @@
 package com.rcslabs.chat;
 
-import com.rcslabs.a3.auth.AbstractAuthController;
-import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.auth.ISessionStorage;
-import com.rcslabs.a3.auth.Session;
-import com.rcslabs.a3.messaging.IMessageBroker;
+import com.rcslabs.a3.auth.*;
+import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.RedisConnector;
 
 import java.util.UUID;
 
@@ -13,8 +11,13 @@ import java.util.UUID;
  */
 public class ChatAuthController extends AbstractAuthController {
 
-    public ChatAuthController(IMessageBroker broker, ISessionStorage storage, int timeToLive) {
-        super(broker, storage, timeToLive);
+    public ChatAuthController(RedisConnector broker, ISessionStorage storage) {
+        super("auth:chat", broker, storage);
+    }
+
+    @Override
+    public void onAuthMessage(AuthMessage message) {
+
     }
 
     @Override

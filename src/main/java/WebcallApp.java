@@ -6,10 +6,7 @@ import com.rcslabs.chat.BaseChatApplication;
 import com.rcslabs.chat.ChatMessage;
 import com.rcslabs.rcl.JainSipGlobalParams;
 import com.rcslabs.rcl.JainSipRclFactory;
-import com.rcslabs.webcall.BaseCallApplication;
-import com.rcslabs.webcall.CallAppConfig;
-import com.rcslabs.webcall.ConstructorCallApplication;
-import com.rcslabs.webcall.ICallAppConfig;
+import com.rcslabs.webcall.*;
 import com.rcslabs.webcall.calls.CallMessage;
 import com.rcslabs.webcall.media.MediaMessage;
 import org.slf4j.Logger;
@@ -41,7 +38,6 @@ public class WebcallApp{
             m.registerMessageClass(CallMessage.class);
             m.registerMessageClass(MediaMessage.class);
             m.registerMessageClass(ChatMessage.class);
-            m.start();
 
             JainSipGlobalParams params = new JainSipGlobalParams();
 			params.setLocalIpAddress(  config.getSipLocalHost() );
@@ -58,6 +54,7 @@ public class WebcallApp{
             redisConnector.subscribe(new ConstructorCallApplication("constructor", config, redisConnector, factory));
             redisConnector.subscribe(new BaseCallApplication("click2call", config, redisConnector, factory));
             redisConnector.subscribe(new BaseChatApplication("chat", redisConnector));
+            m.start();
 		}catch(Exception e){
             log.error("Unhandled exception in main. Application will be exit.", e);
 			return; 
