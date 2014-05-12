@@ -1,25 +1,19 @@
 package com.rcslabs.chat;
 
+import com.rcslabs.a3.AbstractApplication;
 import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.InMemoryDataStorage;
 import com.rcslabs.a3.auth.*;
-import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.webcall.MessageProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by sx on 22.04.14.
  */
-public class BaseChatApplication implements IChatApplication {
+public class BaseChatApplication extends AbstractApplication implements IChatApplication {
 
-    protected final static Logger log = LoggerFactory.getLogger(BaseChatApplication.class);
-
-    protected final String messagingChannel;
-    protected final RedisConnector redisConnector;
     protected final IAuthController authController;
     protected final IDataStorage<ChatRoom> rooms;
     protected final IDataStorage<ChatMessage> messages;
@@ -27,32 +21,17 @@ public class BaseChatApplication implements IChatApplication {
     private final String ENTER_ROOM = "ENTER_ROOM";
     private final String LEAVE_ROOM = "LEAVE_ROOM";
 
-    public BaseChatApplication(String messagingChannel, RedisConnector redisConnector) {
-        this.messagingChannel = messagingChannel;
-        this.redisConnector = redisConnector;
+    public BaseChatApplication(RedisConnector redisConnector, String channelName) {
+        super(redisConnector, channelName, null);
+
         this.rooms = new InMemoryDataStorage<>();
         this.messages = new InMemoryDataStorage<>();
         this.authController = new ChatAuthController(redisConnector, new InMemorySessionStorage());
     }
 
     @Override
-    public boolean ready() {
-        return true;
-    }
-
-    @Override
     public ISession findSession(String value) {
         return authController.findSession(value);
-    }
-
-    @Override
-    public IConfig getConfig() {
-        return null;
-    }
-
-    @Override
-    public String getChannel() {
-        return messagingChannel;
     }
 
     @Override

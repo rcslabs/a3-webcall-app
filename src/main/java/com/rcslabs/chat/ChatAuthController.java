@@ -1,7 +1,6 @@
 package com.rcslabs.chat;
 
 import com.rcslabs.a3.auth.*;
-import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.RedisConnector;
 
 import java.util.UUID;

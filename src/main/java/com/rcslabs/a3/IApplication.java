@@ -10,7 +10,7 @@ import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
  */
 public interface IApplication extends IMessageBrokerDelegate {
 
-    boolean ready();
+    void start();
 
     ISession findSession(String value);
 

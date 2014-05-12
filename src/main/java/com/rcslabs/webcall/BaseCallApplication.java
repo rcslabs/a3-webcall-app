@@ -1,13 +1,13 @@
 package com.rcslabs.webcall;
 
+import com.rcslabs.a3.AbstractApplication;
 import com.rcslabs.a3.auth.AuthMessage;
 import com.rcslabs.a3.auth.CriticalFailedSession;
 import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.config.IConfig;
+import com.rcslabs.a3.config.ISipConfig;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.*;
 import com.rcslabs.rcl.core.IRclFactory;
@@ -18,24 +18,17 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.entity.*;
 import com.rcslabs.webcall.calls.*;
 import com.rcslabs.webcall.media.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-public class BaseCallApplication implements
-        ICallApplication, ICallContextDelegate, IMediaPointDelegate, IMessageBrokerDelegate {
+public class BaseCallApplication extends AbstractApplication implements
+        ICallApplication, ICallContextDelegate, IMediaPointDelegate {
 
-    protected final static Logger log = LoggerFactory.getLogger(BaseCallApplication.class);
-
-    protected String channelName;
-
-    protected ICallAppConfig config;
     protected IRclFactory factory;
     protected ICallListener jainSipCallListener;
-    protected RedisConnector redisConnector;
+
     protected IAuthController authController;
 
     protected Map<String, IMediaPoint> points;
@@ -44,26 +37,20 @@ public class BaseCallApplication implements
 
     protected CallLogger callLogger;
 
-    public BaseCallApplication(String channelName, ICallAppConfig config, RedisConnector redisConnector, IRclFactory factory)
+    public BaseCallApplication(RedisConnector redisConnector, String channelName, ICallAppConfig config, IRclFactory factory)
     {
-        this.channelName = channelName;
+        super(redisConnector, channelName, config);
+
         this.points = new ConcurrentHashMap<>();
         this.calls = new ConcurrentHashMap<>();
         this.sipId2callId = new ConcurrentHashMap<>();
 
-        this.config = config;
         this.factory = factory;
-        this.redisConnector = redisConnector;
 
         jainSipCallListener = new JainSipCallListener(this);
         authController = new SipAuthController("auth:sip", config, redisConnector, factory);
 
         callLogger = new CallLogger(redisConnector);
-    }
-
-    @Override
-    public boolean ready(){
-        return true;
     }
 
     @Override
@@ -206,23 +193,10 @@ public class BaseCallApplication implements
         }
     }
 
-
-
-    @Override
-    public IConfig getConfig() {
-        return config;
-    }
-
     @Override
     public ISession findSession(String value) {
         return authController.findSession(value);
     }
-
-    @Override
-    public String getChannel() {
-        return channelName;
-    }
-
 
     @Override
     public void beforeStartSession(IMessage message) throws Exception{}
@@ -233,9 +207,9 @@ public class BaseCallApplication implements
     {
         try {
 
-            String sipAddr = config.getSipServerHost();
-            if(0 != config.getSipServerPort() && 5060 != config.getSipServerPort()){
-                sipAddr += (":"+config.getSipServerPort());
+            String sipAddr = ((ISipConfig)config).getSipServerHost();
+            if(0 != ((ISipConfig)config).getSipServerPort() && 5060 != ((ISipConfig)config).getSipServerPort()){
+                sipAddr += (":"+((ISipConfig)config).getSipServerPort());
             }
             ISession session = findSession((String) message.get(MessageProperty.SESSION_ID));
 
@@ -250,7 +224,7 @@ public class BaseCallApplication implements
             List<Object> vv = (List<Object>) message.get(MessageProperty.VOICE_VIDEO);
             ICallContext ctx = new CallContext(sessionId, aUri, bUri, (Boolean)vv.get(0), (Boolean)vv.get(1), callId);
             ctx.initWith(this);
-            ctx.setMediaContext(new StaticMediaContext(config));
+            ctx.setMediaContext(new StaticMediaContext((ICallAppConfig)config));
 
             if(!calls.containsKey(callId)){
                 calls.put(callId, ctx);

@@ -1,5 +1,7 @@
 package com.rcslabs.webcall;
 
+import com.rcslabs.a3.config.IDatabaseConfig;
+import com.rcslabs.a3.config.ISipConfig;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.ICallContext;
@@ -8,8 +10,6 @@ import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
 import com.rcslabs.webcall.calls.CallContext;
 import com.rcslabs.webcall.calls.CallMessage;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -20,10 +20,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class ConstructorCallApplication extends BaseCallApplication {
-
-    private final static Logger log = LoggerFactory.getLogger(ConstructorCallApplication.class);
-
-    private boolean _ready;
 
     private ScheduledExecutorService scheduler;
 
@@ -38,14 +34,13 @@ public class ConstructorCallApplication extends BaseCallApplication {
     private final String DURATION_NOTIFICATION_SIPMSG = "durationNotificationSipmessage";
     private final String OPERATOR_ID_PROPERTY = "operatorId";
 
-    public ConstructorCallApplication(String channelName, ICallAppConfig config, RedisConnector redisConnector, IRclFactory factory)
+    public ConstructorCallApplication(RedisConnector redisConnector, String channelName, ICallAppConfig config, IRclFactory factory)
     {
-        super(channelName, config, redisConnector, factory);
+        super(redisConnector, channelName, config, factory);
 
         try {
             Class.forName("org.postgresql.Driver");
             scheduler = Executors.newScheduledThreadPool(1);  // TODO: should increase threads num in future???
-            _ready = true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -53,13 +48,10 @@ public class ConstructorCallApplication extends BaseCallApplication {
 
     protected Connection dbConn() throws SQLException{
         return DriverManager.getConnection(
-                config.getDatabaseUrl(), config.getDatabaseUser(), config.getDatabasePassword()
+                ((IDatabaseConfig) config).getDatabaseUrl(),
+                ((IDatabaseConfig) config).getDatabaseUser(),
+                ((IDatabaseConfig) config).getDatabasePassword()
         );
-    }
-
-    @Override
-    public boolean ready(){
-        return _ready;
     }
 
     @Override
@@ -81,7 +73,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
             List<Object> vv = (List<Object>) message.get(MessageProperty.VOICE_VIDEO);
             String bUri = props.get((Boolean) vv.get(1) ? SIP_VIDEO_PHONE_NUMBER : SIP_VOICE_PHONE_NUMBER);
             if(-1 == bUri.indexOf('@')){
-                bUri += "@"+config.getSipServerHost()+":"+config.getSipServerPort();
+                bUri += "@"+((ISipConfig)config).getSipServerHost()+":"+((ISipConfig)config).getSipServerPort();
             }
             message.set(MessageProperty.B_URI, bUri);
 
