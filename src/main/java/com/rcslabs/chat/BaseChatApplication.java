@@ -26,7 +26,7 @@ public class BaseChatApplication extends AbstractApplication implements IChatApp
 
         this.rooms = new InMemoryDataStorage<>();
         this.messages = new InMemoryDataStorage<>();
-        this.authController = new ChatAuthController(redisConnector, new InMemorySessionStorage());
+        this.authController = new ChatAuthController(redisConnector, new InMemoryDataStorage<ISession>());
     }
 
     @Override

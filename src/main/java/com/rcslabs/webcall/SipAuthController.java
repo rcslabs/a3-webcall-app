@@ -1,5 +1,6 @@
 package com.rcslabs.webcall;
 
+import com.rcslabs.a3.InMemoryDataStorage;
 import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
@@ -25,7 +26,7 @@ public class SipAuthController extends AbstractAuthController
     protected IRclFactory factory;
 
 	public SipAuthController(String channel, ICallAppConfig config, RedisConnector broker, IRclFactory factory) {
-		super(channel, broker, new InMemorySessionStorage());
+		super(channel, broker, new InMemoryDataStorage<ISession>());
         this.config = config;
         this.factory = factory;
 	}
@@ -114,19 +115,6 @@ public class SipAuthController extends AbstractAuthController
 			log.error("Session not found for id=" + event.getConnection().getId());
 		}else{
 			try {
-				// find session with the same username and kick him
-                ISession exist = storage.findPreviousSession(session);
-                if(exist != null) {
-                    onSessionFailed(exist, "REPLACED");
-                    log.warn("Session " + exist.getSessionId()
-                            + " replaced with session " + session.getSessionId());
-                    IConnection conn = factory.findConnection(exist.getSessionId());
-                    if(null != conn){
-                        try {
-                            conn.getService(ITelephonyService.class).removeListener(this);
-                        } catch (ServiceNotEnabledException e) { /* no critical error here */}
-                    }
-                }
 				event.getConnection().getService(ITelephonyService.class).addListener(this);
 			} catch (ServiceNotEnabledException e) {
 				log.error(e.getMessage());

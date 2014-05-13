@@ -1,5 +1,6 @@
 package com.rcslabs.chat;
 
+import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.messaging.RedisConnector;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  */
 public class ChatAuthController extends AbstractAuthController {
 
-    public ChatAuthController(RedisConnector broker, ISessionStorage storage) {
+    public ChatAuthController(RedisConnector broker, IDataStorage<ISession> storage) {
         super("auth:chat", broker, storage);
     }
 

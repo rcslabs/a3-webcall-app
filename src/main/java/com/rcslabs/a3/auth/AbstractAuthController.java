@@ -1,6 +1,7 @@
 package com.rcslabs.a3.auth;
 
 import com.rcslabs.a3.AbstractController;
+import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.RedisConnector;
@@ -14,9 +15,9 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractAuthController extends AbstractController implements IAuthController {
 
     protected final static Logger log = LoggerFactory.getLogger(AbstractAuthController.class);
-    protected final ISessionStorage storage;
+    protected final IDataStorage<ISession> storage;
 
-    public AbstractAuthController(String channel, RedisConnector redisConnector, ISessionStorage storage){
+    public AbstractAuthController(String channel, RedisConnector redisConnector, IDataStorage<ISession> storage){
         super(redisConnector, channel);
         this.storage = storage;
     }
