@@ -17,7 +17,7 @@ public abstract class AbstractAuthController extends AbstractController implemen
     protected final ISessionStorage storage;
 
     public AbstractAuthController(String channel, RedisConnector redisConnector, ISessionStorage storage){
-        super(channel, redisConnector);
+        super(redisConnector, channel);
         this.storage = storage;
     }
 

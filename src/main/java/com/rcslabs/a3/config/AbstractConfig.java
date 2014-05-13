@@ -4,13 +4,14 @@ import com.rcslabs.a3.messaging.RedisConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
 public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
 
-	protected final static Logger log = LoggerFactory.getLogger(AbstractConfig.class);
+	protected final Logger log;
 
 	private AbstractConfigChainHandler firstHandler;
     private ArgsConfigChainHandler argsHandler;
@@ -18,7 +19,9 @@ public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
     private DefaultsConfigChainHandler defaultsHandler;
     private RedisConfigChainHandler redisHandler;
 
-	public AbstractConfig(){
+    protected AbstractConfig(){
+        log = LoggerFactory.getLogger(getClass());
+
         Properties args = new Properties();
 		String s = System.getProperty("sun.java.command");
 		String[] s2 = s.split(" ");
@@ -79,5 +82,25 @@ public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
             log.error("Error parse Redis URI: " + e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        String res = "Config [";
+        try {
+            Method[] m = getClass().getMethods();
+            for (int i = 0; i < m.length; i++) {
+                String methodName = m[i].getName();
+                if(0 != methodName.indexOf("get")){ continue; }
+                if(0 == methodName.indexOf("getProperty")){ continue; }
+                if(0 == methodName.indexOf("getClass")){ continue; }
+                String key = methodName.substring(3);
+                Object val = (m[i].invoke(this));
+                res += (key+"="+val+", ");
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return res + "]";
     }
 }

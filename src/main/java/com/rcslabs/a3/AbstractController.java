@@ -7,16 +7,16 @@ import com.rcslabs.a3.messaging.RedisConnector;
  */
 public abstract class AbstractController implements IController {
 
-    protected final String channel;
+    protected final String channelName;
     protected final RedisConnector redisConnector;
 
-    public AbstractController(String channel, RedisConnector redisConnector){
-        this.channel = channel;
+    public AbstractController(RedisConnector redisConnector, String channelName){
+        this.channelName = channelName;
         this.redisConnector = redisConnector;
     }
 
     @Override
     public String getChannel() {
-        return channel;
+        return channelName;
     }
 }

@@ -65,21 +65,4 @@ public class CallAppConfig extends AbstractConfig implements ICallAppConfig {
     public String getMcChannel() {
         return getPropertyAsString("mc-channel");
     }
-
-    @Override
-    public String toString() {
-        String res = "CallAppConfig [";
-        try {
-            Method[] m = CallAppConfig.class.getMethods();
-            for (int i = 0; i < m.length; i++) {
-                if(0 != m[i].getName().indexOf("get")){ continue; }
-                String key = m[i].getName().substring(3);
-                String val = (m[i].invoke(this)).toString();
-                res += (key+"="+val+", ");
-            }
-        } catch (Exception e) {
-            log.error("Error " + e.getMessage());
-        }
-        return res + "]";
-    }
 }
