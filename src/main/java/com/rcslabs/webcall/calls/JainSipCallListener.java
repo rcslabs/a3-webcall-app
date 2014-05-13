@@ -6,7 +6,7 @@ import com.rcslabs.rcl.telephony.ICallListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.*;
 import com.rcslabs.webcall.ICallApplication;
-import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.a3.messaging.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

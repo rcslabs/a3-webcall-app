@@ -1,6 +1,7 @@
 package com.rcslabs.a3.auth;
 
 import com.rcslabs.a3.fsm.AbstractFSM;
+import com.rcslabs.a3.messaging.MessageProperty;
 
 import java.util.Collection;
 import java.util.Date;
@@ -22,11 +23,11 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
 	private ISession.State state;
 
     public Session(AuthMessage message) {
-        this((String) message.get("service"),
-             (String) message.get("username"),
-             (String) message.get("password"),
-             (String) message.get("clientId"),
-             (String) message.get("sender"));
+        this((String) message.get(MessageProperty.SERVICE),
+             (String) message.get(MessageProperty.USERNAME),
+             (String) message.get(MessageProperty.PASSWORD),
+             (String) message.get(MessageProperty.CLIENT_ID),
+             (String) message.get(MessageProperty.SENDER));
     }
 
 	public Session(String service, String username, String password, String clientId, String sender){
@@ -148,8 +149,9 @@ public class Session extends AbstractFSM<ISession.State, SessionSignal> implemen
 
     @Override
 	public String toString() {
-		return "Session [username=" + username	
-				+ ", sender=" + sender				
+		return "Session [username=" + username
+                + ", service=" + service
+                + ", sender=" + sender
 				+ ", sessionId=" + sessionId
 				+ ", clientId=" + clientId
 				+ ", state=" + state

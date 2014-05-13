@@ -3,7 +3,7 @@ package com.rcslabs.a3.auth;
 
 import com.rcslabs.a3.fsm.AbstractFSM;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.a3.messaging.MessageProperty;
 
 import java.util.Collection;
 

@@ -1,4 +1,4 @@
-package com.rcslabs.webcall;
+package com.rcslabs.a3.messaging;
 
 /**
  * Created by sx on 17.04.14.

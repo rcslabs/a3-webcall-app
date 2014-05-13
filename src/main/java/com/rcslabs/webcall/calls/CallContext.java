@@ -6,7 +6,7 @@ import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.rcl.telephony.entity.ICallParameter;
-import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.a3.messaging.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

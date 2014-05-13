@@ -7,7 +7,7 @@ import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.RedisConnector;
-import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.a3.messaging.MessageProperty;
 
 /**
  * Created by sx on 22.04.14.

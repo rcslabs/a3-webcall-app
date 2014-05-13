@@ -8,6 +8,7 @@ import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.config.ISipConfig;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.MessageProperty;
 import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.*;
 import com.rcslabs.rcl.core.IRclFactory;

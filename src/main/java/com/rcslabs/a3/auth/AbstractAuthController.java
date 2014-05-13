@@ -5,7 +5,7 @@ import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
 import com.rcslabs.a3.messaging.RedisConnector;
-import com.rcslabs.webcall.MessageProperty;
+import com.rcslabs.a3.messaging.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

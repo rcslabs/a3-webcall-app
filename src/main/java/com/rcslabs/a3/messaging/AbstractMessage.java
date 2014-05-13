@@ -1,6 +1,5 @@
 package com.rcslabs.a3.messaging;
 
-import com.rcslabs.webcall.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
