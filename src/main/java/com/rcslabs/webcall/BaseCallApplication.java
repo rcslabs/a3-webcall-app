@@ -341,7 +341,7 @@ public class BaseCallApplication extends AbstractApplication implements
         cc.setProfile("RTP/AVP");
         Set<String> audioCodecs = media.getRtpAudioCodecs();
         for(String c : audioCodecs){ cc.addAudio(c); }
-        Set<String> videoCodecs = media.getRtpAudioCodecs();
+        Set<String> videoCodecs = media.getRtpVideoCodecs();
         for(String c : videoCodecs){ cc.addVideo(c); }
 
         IMediaPoint mp = new SIPMediaPoint(sessionId, callId, cc, hasVoice, hasVideo);
