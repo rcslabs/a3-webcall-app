@@ -40,7 +40,8 @@ public class WebcallApp{
         apps = new ArrayList<>();
 
         ICallAppConfig config = new CallAppConfig();
-        redisConnector = new RedisConnector(config.getRedisUri());
+        redisConnector = new RedisConnector();
+        redisConnector.connect(config.getRedisUri());
         config.initWithRedis(redisConnector);
         log.info(config.toString());
 
@@ -69,7 +70,7 @@ public class WebcallApp{
         apps.add(new BaseCallApplication(redisConnector, "click2call", config, factory));
         apps.add(new BaseChatApplication(redisConnector, "chat"));
 
-        for(IApplication a : apps){ a.start(); }
+        for(IApplication a : apps){ a.init(); }
 	}
 
 	public static void main(String[] args) {	

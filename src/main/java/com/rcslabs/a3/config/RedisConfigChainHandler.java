@@ -9,23 +9,26 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
  */
 public class RedisConfigChainHandler extends AbstractConfigChainHandler {
 
-    private Jedis jedis;
+    private RedisConnector redisConnector;
 
     public RedisConfigChainHandler(RedisConnector redisConnector){
         super();
-        jedis = redisConnector.getResource();
+        this.redisConnector = redisConnector;
     }
 
     @Override
     public String getPropertyAsString(String key){
-        try{
-            if(jedis.exists(key)){
-                return jedis.get(key);
+        Jedis j = redisConnector.getResource();
+        if(null != j && j.exists(key)){
+            String result = j.get(key);
+            redisConnector.returnResource(j);
+            return result;
+        }else{
+            if(null != next){
+                return next.getPropertyAsString(key);
+            }else{
+                return null;
             }
-        } catch (JedisConnectionException e){ /* nothing happens */ }
-
-        if(null == next) return null;
-        return next.getPropertyAsString(key);
+        }
     }
-
 }

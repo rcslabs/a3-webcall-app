@@ -8,23 +8,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by sx on 12.05.14.
  */
-public abstract class AbstractApplication implements IApplication {
+public abstract class AbstractApplication extends AbstractComponent implements IApplication {
 
-    protected final Logger log;
-    protected final String channelName;
-    protected final RedisConnector redisConnector;
     protected final IConfig config;
 
     protected AbstractApplication(RedisConnector redisConnector, String channelName, IConfig config) {
-        this.redisConnector = redisConnector;
-        this.channelName = channelName;
+        super(redisConnector, channelName);
         this.config = config;
-        this.log = LoggerFactory.getLogger(getClass());
-    }
-
-    @Override
-    public String getChannel(){
-        return channelName;
     }
 
     @Override
@@ -32,8 +22,4 @@ public abstract class AbstractApplication implements IApplication {
         return config;
     }
 
-    @Override
-    public void start() {
-        redisConnector.subscribe(this);
-    }
 }

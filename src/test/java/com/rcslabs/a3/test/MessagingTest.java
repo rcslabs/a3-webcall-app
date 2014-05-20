@@ -23,15 +23,16 @@ public class MessagingTest {
 
     private static RedisConnector redisConnector;
 
-    private static RedisSubscriber subscriber;
+    private static TestMessageBrokerDelegate subscriber;
 
     private static final String REDIS_URI = "redis://192.168.1.200";
     private static final String CHANNEL = "test";
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        redisConnector = new RedisConnector(new URI(REDIS_URI));
-        subscriber = new RedisSubscriber();
+        redisConnector = new RedisConnector();
+        redisConnector.connect(new URI(REDIS_URI));
+        subscriber = new TestMessageBrokerDelegate(CHANNEL);
         redisConnector.subscribe(subscriber);
 
         MessageMarshaller m = MessageMarshaller.getInstance();

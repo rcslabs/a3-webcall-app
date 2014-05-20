@@ -13,6 +13,7 @@ public class ArgsConfigChainHandler extends AbstractConfigChainHandler {
         for(int i = 1; i < s2.length; ++i){
             s = s2[i].trim();
             String[] s3 = s.split("=");
+            if(s3.length < 2){ continue; }
             data.setProperty(s3[0].substring(2), s3[1]);
         }
     }

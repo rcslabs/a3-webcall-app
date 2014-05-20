@@ -9,16 +9,17 @@ import java.util.List;
 /**
  * Created by sx on 07.05.14.
  */
-public class RedisSubscriber implements IMessageBrokerDelegate{
+public class TestMessageBrokerDelegate implements IMessageBrokerDelegate{
 
+    private String channel;
     private List<IMessage> messages;
-
     public List<IMessage> getMessages() {
         return messages;
     }
 
-    public RedisSubscriber(){
+    public TestMessageBrokerDelegate(String channel){
         messages = new ArrayList<>();
+        this.channel = channel;
     }
 
     public void clean(){
@@ -27,12 +28,11 @@ public class RedisSubscriber implements IMessageBrokerDelegate{
 
     @Override
     public String getChannel() {
-        return "test";
+        return channel;
     }
 
     @Override
     public void onMessageReceived(IMessage message) {
-        System.out.println(message);
         messages.add(message);
     }
 

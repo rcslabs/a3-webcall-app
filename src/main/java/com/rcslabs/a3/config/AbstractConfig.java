@@ -27,7 +27,8 @@ public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
 		String[] s2 = s.split(" ");
 		for(int i = 1; i < s2.length; ++i){
 			s = s2[i].trim();
-			String[] s3 = s.split("=");  
+			String[] s3 = s.split("=");
+            if(s3.length < 2){ continue; }
 			args.setProperty(s3[0].substring(2), s3[1]);
 		}
 

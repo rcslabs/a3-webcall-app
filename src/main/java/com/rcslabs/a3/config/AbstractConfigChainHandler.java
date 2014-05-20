@@ -36,8 +36,14 @@ public abstract class AbstractConfigChainHandler implements IConfigChainHandler 
 
     @Override
     public String getPropertyAsString(String key){
-        if(data.containsKey(key)) return data.getProperty(key);
-        if(null == next) return null;
-        return next.getPropertyAsString(key);
+        if(data.containsKey(key)){
+            return data.getProperty(key);
+        }else{
+            if(null != next) {
+                return next.getPropertyAsString(key);
+            }else{
+                return null;
+            }
+        }
     }
 }

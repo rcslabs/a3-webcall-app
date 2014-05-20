@@ -8,9 +8,7 @@ import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 /**
  * Created by sx on 15.04.14.
  */
-public interface IApplication extends IMessageBrokerDelegate {
-
-    void start();
+public interface IApplication extends IComponent{
 
     ISession findSession(String value);
 

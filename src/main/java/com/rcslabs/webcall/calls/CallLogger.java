@@ -21,16 +21,11 @@ public class CallLogger {
     }
 
     public void push(CallLogEntry item){
-        Jedis jedis = null;
-        try{
-            jedis = redisConnector.getResource();
-            jedis.ping();
-            String json = gson.toJson(item);
-            jedis.publish("log:calls", json);
-            jedis.rpush("log:calls", json);
-            redisConnector.returnResource(jedis);
-        } catch (Exception e){
-            redisConnector.returnBrokenResource(jedis);
-        }
+        Jedis j = redisConnector.getResource();
+        if(null == j){ return;}
+        String json = gson.toJson(item);
+        j.publish("log:calls", json);
+        j.rpush("log:calls", json);
+        redisConnector.returnResource(j);
     }
 }

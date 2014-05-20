@@ -161,27 +161,12 @@ public class BaseCallApplication extends AbstractApplication implements
     protected void handleMediaMessage(MediaMessage message)
             throws Exception
     {
-        switch (message.getType())
-        {
-            case SDP_OFFER:
-            case SDP_ANSWER:
-            case CREATE_MEDIA_POINT_OK:
-            case CREATE_MEDIA_POINT_FAILED:
-            case CRITICAL_ERROR:
-            case JOIN_OK:
-            case JOIN_FAILED:
-            case UNJOIN_OK:
-            case UNJOIN_FAILED:
-            case REMOVE_MEDIA_POINT_OK:
-            case REMOVE_MEDIA_POINT_FAILED:
-                String pointId = (String) message.get(MessageProperty.POINT_ID);
-                IMediaPoint mp = findMediaPoint(pointId);
-                if(null != mp){
-                    mp.onEvent(new MediaSignal(message));
-                }else{
-                    log.warn("MediaPoint " + pointId + " not found");
-                }
-                break;
+        String pointId = (String) message.get(MessageProperty.POINT_ID);
+        IMediaPoint mp = findMediaPoint(pointId);
+        if(null != mp){
+            mp.onEvent(new MediaSignal(message));
+        }else{
+            log.warn("MediaPoint " + pointId + " not found");
         }
     }
 
