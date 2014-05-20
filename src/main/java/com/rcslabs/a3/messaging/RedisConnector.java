@@ -37,16 +37,16 @@ public class RedisConnector implements IMessageBroker {
         // http://commons.apache.org/proper/commons-pool/api-1.6/index.html?org/apache/commons/pool/impl/GenericObjectPool.html
         GenericObjectPool.Config c = new GenericObjectPool.Config();
         c.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_GROW;
-        c.timeBetweenEvictionRunsMillis = 600000; // 10 min
-        c.minEvictableIdleTimeMillis = 60000;     // 1 min
+        c.timeBetweenEvictionRunsMillis = 60000; // 1 min
+        c.minEvictableIdleTimeMillis = 4000;     // 4 sec
 
         pool = new JedisPool(c, uri.getHost(), (-1 == uri.getPort() ? Protocol.DEFAULT_PORT : uri.getPort()));
 
-        do{
+        while (!checkJedisInternal()){
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) { }
-        } while (!checkJedisInternal());
+        }
 
         Executors.newScheduledThreadPool(1)
             .scheduleAtFixedRate(new Runnable() {
@@ -107,8 +107,7 @@ public class RedisConnector implements IMessageBroker {
     @Override
 	public void subscribe(final IMessageBrokerDelegate delegate) {
 		log.info("Subscribe to " + delegate.getChannel());
-        RedisSubscriber sub = new RedisSubscriber(delegate);
-        RedisSubscriberThread th = new RedisSubscriberThread(pool, sub, log);
+        RedisSubscriberThread th = new RedisSubscriberThread(this, delegate, log);
         subscribers.add(th);
         subscribersExecutor.submit(th);
     }

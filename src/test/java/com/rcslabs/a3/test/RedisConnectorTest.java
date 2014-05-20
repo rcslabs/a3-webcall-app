@@ -140,13 +140,13 @@ public class RedisConnectorTest {
         Assert.assertEquals(1, dA.getMessages().size());
     }
 
-    @Test
+    @Test(timeout = 30000)
     public void testGrowingJedisPool()  throws InterruptedException{
         connector.connect(getValidURI());
 
         List<TestMessageBrokerDelegate> delegates = new ArrayList<>();
 
-        for(int i=0; i<128; ++i){
+        for(int i=0; i<60; ++i){
             System.out.println("Subscribers count: " + i);
             TestMessageBrokerDelegate dA = new TestMessageBrokerDelegate("A");
             connector.subscribe(dA);

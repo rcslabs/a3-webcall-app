@@ -10,14 +10,14 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
  */
 public class RedisSubscriberThread extends Thread {
 
-    private final JedisPool pool;
+    private final RedisConnector redisConnector;
     private final RedisSubscriber subscriber;
     private final Logger log;
 
-    public RedisSubscriberThread(JedisPool pool, RedisSubscriber subscriber, Logger log){
-        super("RedisSubscriberThread-"+subscriber.getChannel());
-        this.pool = pool;
-        this.subscriber = subscriber;
+    public RedisSubscriberThread(RedisConnector redisConnector, IMessageBrokerDelegate delegate, Logger log){
+        super("RedisSubscriberThread-"+delegate.getChannel());
+        this.redisConnector = redisConnector;
+        this.subscriber = new RedisSubscriber(delegate);
         this.log = log;
     }
 
@@ -27,17 +27,16 @@ public class RedisSubscriberThread extends Thread {
 
     @Override
     public void run() {
-        Jedis jedisSub = null;
+        Jedis j = null;
         try {
-            jedisSub = pool.getResource();
+            j = redisConnector.getResource();
             subscriber.setDirty(false);
-            jedisSub.subscribe(subscriber, subscriber.getChannel());
+            j.subscribe(subscriber, subscriber.getChannel());
         } catch (JedisConnectionException e) {
             log.error("Redis connection failed");
             subscriber.setDirty(true);
-            if (jedisSub != null) {
-                pool.returnBrokenResource(jedisSub);
-            }
+        } finally {
+            redisConnector.returnResource(j);
         }
     }
 }
