@@ -2,7 +2,6 @@ package com.rcslabs.a3.config;
 
 import com.rcslabs.a3.messaging.RedisConnector;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * Created by sx on 06.03.14.

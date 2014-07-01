@@ -68,7 +68,7 @@ public class WebcallApp{
 
         apps.add(new ConstructorCallApplication(redisConnector, "constructor", config, factory));
         apps.add(new BaseCallApplication(redisConnector, "click2call", config, factory));
-        apps.add(new BaseChatApplication(redisConnector, "chat"));
+        apps.add(new BaseChatApplication(redisConnector, "chat", config));
 
         for(IApplication a : apps){ a.init(); }
 	}

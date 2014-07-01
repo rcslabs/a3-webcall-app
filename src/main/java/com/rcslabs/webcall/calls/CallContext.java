@@ -2,11 +2,11 @@ package com.rcslabs.webcall.calls;
 
 import com.rcslabs.a3.IApplication;
 import com.rcslabs.a3.fsm.AbstractFSM;
+import com.rcslabs.a3.messaging.MessageProperty;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.ICallContextDelegate;
 import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.rcl.telephony.entity.ICallParameter;
-import com.rcslabs.a3.messaging.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

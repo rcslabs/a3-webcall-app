@@ -1,7 +1,7 @@
 package com.rcslabs.webcall.calls;
 
-import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.messaging.MessageProperty;
+import com.rcslabs.a3.rtc.ICallContext;
 
 import java.io.Serializable;
 import java.util.Date;

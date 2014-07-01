@@ -1,18 +1,31 @@
 package com.rcslabs.chat;
 
 import com.rcslabs.a3.IDataStorage;
-import com.rcslabs.a3.auth.*;
+import com.rcslabs.a3.auth.AbstractAuthController;
+import com.rcslabs.a3.auth.AuthMessage;
+import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.messaging.RedisConnector;
+import com.rcslabs.webcall.ICallAppConfig;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 
-import java.util.UUID;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * Created by sx on 22.04.14.
  */
 public class ChatAuthController extends AbstractAuthController {
 
-    public ChatAuthController(RedisConnector broker, IDataStorage<ISession> storage) {
+    private static String API_AUTH_CHECK ;//= "http://test-ru.luxmsbi.com/bi-fe-server/api/auth/check";
+
+    public ChatAuthController(RedisConnector broker, ICallAppConfig config, IDataStorage<ISession> storage) {
         super("auth:chat", broker, storage);
+        API_AUTH_CHECK = config.getApiAuthCheckUrl();
     }
 
     @Override
@@ -22,7 +35,29 @@ public class ChatAuthController extends AbstractAuthController {
 
     @Override
     public void startSession(ISession session) {
-        ((Session)session).setSessionId(UUID.randomUUID().toString());
+        log.debug("Check session " + session.getPassword() + " using " + API_AUTH_CHECK);
+        CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
+        try {
+            httpclient.start();
+            HttpPost request = new HttpPost(API_AUTH_CHECK);
+            final String JSON_STRING = "{\"sessionId\":\""+session.getPassword()+"\"}";
+            request.setEntity(new StringEntity(JSON_STRING, "UTF-8"));
+            request.setHeader("Content-Type", "application/json");
+            Future<HttpResponse> future = httpclient.execute(request, new CheckSessionCallback(session, this));
+            future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            try {
+                httpclient.close();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    @Override
+    public void onSessionStarted(ISession session) {
         storage.set(session.getSessionId(), session);
         super.onSessionStarted(session);
     }

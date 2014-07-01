@@ -1,12 +1,12 @@
 package com.rcslabs.webcall.calls;
 
+import com.rcslabs.a3.messaging.MessageProperty;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.rcl.core.entity.ErrorInfo;
 import com.rcslabs.rcl.telephony.ICallListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.*;
 import com.rcslabs.webcall.ICallApplication;
-import com.rcslabs.a3.messaging.MessageProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

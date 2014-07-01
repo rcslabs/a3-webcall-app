@@ -2,8 +2,6 @@ package com.rcslabs.a3;
 
 import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.messaging.RedisConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by sx on 12.05.14.

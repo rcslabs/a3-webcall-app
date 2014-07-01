@@ -6,8 +6,9 @@ import com.rcslabs.a3.InMemoryDataStorage;
 import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.messaging.MessageProperty;
+import com.rcslabs.a3.messaging.RedisConnector;
+import com.rcslabs.webcall.ICallAppConfig;
 
 /**
  * Created by sx on 22.04.14.
@@ -21,12 +22,12 @@ public class BaseChatApplication extends AbstractApplication implements IChatApp
     private final String ENTER_ROOM = "ENTER_ROOM";
     private final String LEAVE_ROOM = "LEAVE_ROOM";
 
-    public BaseChatApplication(RedisConnector redisConnector, String channelName) {
+    public BaseChatApplication(RedisConnector redisConnector, String channelName, ICallAppConfig config) {
         super(redisConnector, channelName, null);
 
         this.rooms = new InMemoryDataStorage<>();
         this.messages = new InMemoryDataStorage<>();
-        this.authController = new ChatAuthController(redisConnector, new InMemoryDataStorage<ISession>());
+        this.authController = new ChatAuthController(redisConnector, config, new InMemoryDataStorage<ISession>());
     }
 
     @Override

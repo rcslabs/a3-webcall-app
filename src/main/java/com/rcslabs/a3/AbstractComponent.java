@@ -7,10 +7,9 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
 import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by sx on 15.05.14.
@@ -46,7 +45,7 @@ public abstract class AbstractComponent implements IComponent{
                     Jedis j = redisConnector.getResource();
                     if(null == j) return;
                     j.incr(aliveKey);
-                    j.pexpire(aliveKey, 3000);
+                    j.expire(aliveKey, 3000);
                     redisConnector.returnResource(j);
                 }catch(Exception e){
                     log.error(e.getMessage());

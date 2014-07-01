@@ -2,7 +2,6 @@ package com.rcslabs.a3.messaging;
 
 import org.slf4j.Logger;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**

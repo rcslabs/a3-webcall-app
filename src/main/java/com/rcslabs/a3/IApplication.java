@@ -3,7 +3,6 @@ package com.rcslabs.a3;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
 
 /**
  * Created by sx on 15.04.14.

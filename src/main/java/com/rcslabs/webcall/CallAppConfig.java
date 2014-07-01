@@ -2,8 +2,6 @@ package com.rcslabs.webcall;
 
 import com.rcslabs.a3.config.AbstractConfig;
 
-import java.lang.reflect.Method;
-
 public class CallAppConfig extends AbstractConfig implements ICallAppConfig {
 
     @Override
@@ -64,5 +62,10 @@ public class CallAppConfig extends AbstractConfig implements ICallAppConfig {
     @Override
     public String getMcChannel() {
         return getPropertyAsString("mc-channel");
+    }
+
+    @Override
+    public String getApiAuthCheckUrl() {
+        return getPropertyAsString("api-auth-check-url");
     }
 }
