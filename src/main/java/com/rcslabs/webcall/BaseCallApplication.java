@@ -204,8 +204,8 @@ public class BaseCallApplication extends AbstractApplication implements
             String aUri = session.getUsername();
             String bUri = ((String)message.get(MessageProperty.B_URI));
 
-            if(aUri.matches("^\\d+$")){ aUri = "sip:"+aUri+"@"+sipAddr; }
-            if(bUri.matches("^\\d+$")){ bUri = "sip:"+bUri+"@"+sipAddr; }
+            if(aUri.matches("^\\w+$")){ aUri = "sip:"+aUri+"@"+sipAddr; }
+            if(bUri.matches("^\\w+$")){ bUri = "sip:"+bUri+"@"+sipAddr; }
 
             List<Object> vv = (List<Object>) message.get(MessageProperty.VOICE_VIDEO);
             ICallContext ctx = new CallContext(sessionId, aUri, bUri, (Boolean)vv.get(0), (Boolean)vv.get(1), callId);
