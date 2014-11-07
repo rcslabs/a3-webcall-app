@@ -18,7 +18,7 @@ import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
 import com.rcslabs.a3.messaging.CallMessage;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.RedisConnector;
 
 public class SipAuthController extends AbstractAuthController
         implements IConnectionListener, ITelephonyServiceListener {

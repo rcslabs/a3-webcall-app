@@ -9,7 +9,7 @@ import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
 import com.rcslabs.webcall.calls.CallContext;
 import com.rcslabs.a3.messaging.CallMessage;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.RedisConnector;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.*;

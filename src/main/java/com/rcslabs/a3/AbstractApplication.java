@@ -2,7 +2,7 @@ package com.rcslabs.a3;
 
 import com.rcslabs.a3.config.IConfig;
 import com.rcslabs.a3.exception.ComponentLifecycleException;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.RedisConnector;
 
 /**
  * Created by sx on 12.05.14.

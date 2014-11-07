@@ -17,8 +17,8 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.entity.*;
 import com.rcslabs.webcall.calls.*;
 import com.rcslabs.webcall.media.*;
-import com.ykrkn.redis.IMessage;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.IMessage;
+import com.rcslabs.redis.RedisConnector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

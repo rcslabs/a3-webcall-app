@@ -6,7 +6,7 @@ import com.rcslabs.a3.messaging.JsonMessageSerializer;
 import com.rcslabs.chat.ChatMessage;
 import com.rcslabs.a3.messaging.CallMessage;
 import com.rcslabs.a3.messaging.MediaMessage;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.RedisConnector;
 import org.junit.*;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;

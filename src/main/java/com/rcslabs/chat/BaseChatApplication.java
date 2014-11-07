@@ -9,8 +9,8 @@ import com.rcslabs.a3.messaging.AuthMessage;
 import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
 import com.rcslabs.webcall.ICallAppConfig;
-import com.ykrkn.redis.IMessage;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.IMessage;
+import com.rcslabs.redis.RedisConnector;
 
 /**
  * Created by sx on 22.04.14.

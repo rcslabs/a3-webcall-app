@@ -1,7 +1,7 @@
 package com.rcslabs.a3;
 
 import com.rcslabs.a3.exception.ComponentLifecycleException;
-import com.ykrkn.redis.IMessage;
+import com.rcslabs.redis.IMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

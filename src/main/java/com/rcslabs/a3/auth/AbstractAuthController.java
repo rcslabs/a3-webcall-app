@@ -7,8 +7,8 @@ import com.rcslabs.a3.exception.InvalidMessageException;
 import com.rcslabs.a3.messaging.AuthMessage;
 import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
-import com.ykrkn.redis.IMessage;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.IMessage;
+import com.rcslabs.redis.RedisConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

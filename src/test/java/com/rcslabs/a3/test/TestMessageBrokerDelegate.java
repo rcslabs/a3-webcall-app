@@ -1,8 +1,8 @@
 package com.rcslabs.a3.test;
 
 import com.rcslabs.a3.messaging.IAlenaMessage;
-import com.ykrkn.redis.IMessage;
-import com.ykrkn.redis.IMessageListener;
+import com.rcslabs.redis.IMessage;
+import com.rcslabs.redis.IMessageListener;
 
 import java.util.ArrayList;
 import java.util.List;

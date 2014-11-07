@@ -5,7 +5,7 @@ import com.rcslabs.a3.auth.AbstractAuthController;
 import com.rcslabs.a3.messaging.AuthMessage;
 import com.rcslabs.a3.auth.ISession;
 import com.rcslabs.webcall.ICallAppConfig;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.RedisConnector;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;

@@ -2,7 +2,7 @@ package com.rcslabs.webcall.calls;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.ykrkn.redis.RedisConnector;
+import com.rcslabs.redis.RedisConnector;
 import redis.clients.jedis.Jedis;
 
 public class CallLogger {

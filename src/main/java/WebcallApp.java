@@ -8,7 +8,6 @@ import com.rcslabs.webcall.BaseCallApplication;
 import com.rcslabs.webcall.CallAppConfig;
 import com.rcslabs.webcall.ConstructorCallApplication;
 import com.rcslabs.webcall.ICallAppConfig;
-import com.ykrkn.redis.IMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
