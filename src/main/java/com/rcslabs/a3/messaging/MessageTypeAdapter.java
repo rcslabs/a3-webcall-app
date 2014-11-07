@@ -38,8 +38,8 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
         }
     }
 
-    IMessage createEmptyMessage(String jsonTypz, String jsonType) throws Exception {
-        Class<IMessage> clazz = jsonTypzToClassMap.get(jsonTypz);
+    IAlenaMessage createEmptyMessage(String jsonTypz, String jsonType) throws Exception {
+        Class<IAlenaMessage> clazz = jsonTypzToClassMap.get(jsonTypz);
         Enum messageType = jsonTypeToEnumTypeMap.get(jsonType);
         return clazz.getConstructor(messageType.getClass()).newInstance(messageType);
     }
@@ -63,9 +63,9 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
     {
         try{
             JsonObject obj = new JsonObject();
-            obj.addProperty("type", ((IMessage)src).getType().toString());
-            obj.addProperty("typz", ((IMessage)src).getTypz());
-            Iterator it = ((IMessage)src).getData().entrySet().iterator();
+            obj.addProperty("type", ((IAlenaMessage)src).getType().toString());
+            obj.addProperty("typz", ((IAlenaMessage)src).getTypz());
+            Iterator it = ((IAlenaMessage)src).getData().entrySet().iterator();
 
             while (it.hasNext()) {
                 Map.Entry<String, Object> pairs = (Map.Entry)it.next();
@@ -103,7 +103,7 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
     }
 
     // FIXME: invalid deserialization int 777 to float like a 777.0
-    private IMessage handleObject(JsonObject json, JsonDeserializationContext context) throws Exception
+    private IAlenaMessage handleObject(JsonObject json, JsonDeserializationContext context) throws Exception
     {
         Map<String, Object> map = new HashMap<String, Object>();
 
@@ -125,7 +125,7 @@ public class MessageTypeAdapter<T> implements JsonSerializer<T>, JsonDeserialize
         if(type == null)
             throw new InvalidMessageException("Message property 'type' not defined");
 
-        IMessage m = createEmptyMessage(typz, type);
+        IAlenaMessage m = createEmptyMessage(typz, type);
         for(String key : map.keySet()){
             if("typz".equals(key)){ continue; }
             if("type".equals(key)){ continue; }

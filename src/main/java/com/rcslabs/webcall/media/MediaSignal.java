@@ -1,19 +1,20 @@
 package com.rcslabs.webcall.media;
 
 import com.rcslabs.a3.fsm.IFSMSignal;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
+import com.rcslabs.a3.messaging.MediaMessage;
 
 public class MediaSignal implements IFSMSignal<MediaMessage.Type> {
 
     private MediaMessage.Type type;
 
-    private IMessage originalMessage;
+    private IAlenaMessage originalMessage;
 
     public MediaMessage.Type getType(){
         return type;
     }
 
-    public IMessage getMessage(){
+    public IAlenaMessage getMessage(){
         return originalMessage;
     }
 

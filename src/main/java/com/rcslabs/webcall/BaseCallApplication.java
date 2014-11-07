@@ -1,15 +1,13 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.AbstractApplication;
-import com.rcslabs.a3.auth.AuthMessage;
+import com.rcslabs.a3.ICallApplication;
+import com.rcslabs.a3.config.ISIPConfig;
+import com.rcslabs.a3.messaging.*;
 import com.rcslabs.a3.auth.CriticalFailedSession;
 import com.rcslabs.a3.auth.IAuthController;
 import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.config.ISipConfig;
 import com.rcslabs.a3.exception.InvalidMessageException;
-import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.MessageProperty;
-import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.*;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.exception.ServiceNotEnabledException;
@@ -19,6 +17,8 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.entity.*;
 import com.rcslabs.webcall.calls.*;
 import com.rcslabs.webcall.media.*;
+import com.ykrkn.redis.IMessage;
+import com.ykrkn.redis.RedisConnector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,9 +38,9 @@ public class BaseCallApplication extends AbstractApplication implements
 
     protected CallLogger callLogger;
 
-    public BaseCallApplication(RedisConnector redisConnector, String channelName, ICallAppConfig config, IRclFactory factory)
+    public BaseCallApplication(String name, RedisConnector redisConnector, ICallAppConfig config, IRclFactory factory)
     {
-        super(redisConnector, channelName, config);
+        super(name, redisConnector, config);
 
         this.points = new ConcurrentHashMap<>();
         this.calls = new ConcurrentHashMap<>();
@@ -49,24 +49,24 @@ public class BaseCallApplication extends AbstractApplication implements
         this.factory = factory;
 
         jainSipCallListener = new JainSipCallListener(this);
-        authController = new SipAuthController("auth:sip", config, redisConnector, factory);
+        authController = new SipAuthController(redisConnector, "auth:sip", config, factory);
 
         callLogger = new CallLogger(redisConnector);
     }
 
     @Override
-    public void onMessageReceived(IMessage message)
+    public void onMessage(String channel, IMessage message)
     {
         try {
             // all messages except START_SESSION must contains parameter "sessionId"
             // validate it and throws an Exception unsuccessfully
-
-            if(!message.has(MessageProperty.SESSION_ID)){
-                if(message.getType() != AuthMessage.Type.START_SESSION){
+            IAlenaMessage _message = (IAlenaMessage)message;
+            if(!_message.has(MessageProperty.SESSION_ID)){
+                if(_message.getType() != AuthMessage.Type.START_SESSION){
                     throw new InvalidMessageException("Skip the message without sessionId " + message);
                 }
             } else {
-                String sessionId = (String)message.get(MessageProperty.SESSION_ID);
+                String sessionId = (String)_message.get(MessageProperty.SESSION_ID);
                 ISession session = findSession(sessionId);
                 if(null == session){
                     throw new InvalidMessageException("Session not found " + sessionId);
@@ -80,14 +80,13 @@ public class BaseCallApplication extends AbstractApplication implements
             else if(message instanceof MediaMessage)
                 handleMediaMessage((MediaMessage)message);
             else
-                log.warn("Unhandled message " + message.getType());
+                log.warn("Unhandled message " + _message.getType());
         } catch (Exception e) {
             handleOnMessageException(message, e);
         }
     }
 
-    protected void handleAuthMessage(AuthMessage message)
-            throws Exception
+    protected void handleAuthMessage(AuthMessage message) throws Exception
     {
 
         switch (message.getType()) {
@@ -95,14 +94,13 @@ public class BaseCallApplication extends AbstractApplication implements
             case START_SESSION:
                 beforeStartSession(message); 
             case CLOSE_SESSION:
-                ((SipAuthController)authController).onMessageReceived(message);
+                authController.onAuthMessage(message);
                 // TODO: redisConnector.publish("auth:sip", message);
                 break;
         }
     }
 
-    protected void handleCallMessage(CallMessage message)
-            throws Exception
+    protected void handleCallMessage(CallMessage message) throws Exception
     {
         ICallContext ctx;
         String callId;
@@ -158,8 +156,7 @@ public class BaseCallApplication extends AbstractApplication implements
         }
     }
 
-    protected void handleMediaMessage(MediaMessage message)
-            throws Exception
+    protected void handleMediaMessage(MediaMessage message) throws Exception
     {
         String pointId = (String) message.get(MessageProperty.POINT_ID);
         IMediaPoint mp = findMediaPoint(pointId);
@@ -171,11 +168,11 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void handleOnMessageException(IMessage message, Throwable e){
-        log.error(e.getMessage(), e);
+    protected void handleOnMessageException(IMessage message, Throwable e){
+        super.handleOnMessageException(message, e);
 
-        if(message.getType() == AuthMessage.Type.START_SESSION){
-            authController.onSessionFailed(new CriticalFailedSession(message), "Critical error");
+        if(((IAlenaMessage)message).getType() == AuthMessage.Type.START_SESSION){
+            authController.onSessionFailed(new CriticalFailedSession((IAlenaMessage)message), "Critical error");
         }
     }
 
@@ -185,17 +182,17 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void beforeStartSession(IMessage message) throws Exception{}
+    public void beforeStartSession(IAlenaMessage message) throws Exception{}
 
 
     @Override
-    public ICallContext createCallContext(IMessage message)    // TODO: for incoming call
+    public ICallContext createCallContext(IAlenaMessage message)    // TODO: for incoming call
     {
         try {
 
-            String sipAddr = ((ISipConfig)config).getSipServerHost();
-            if(0 != ((ISipConfig)config).getSipServerPort() && 5060 != ((ISipConfig)config).getSipServerPort()){
-                sipAddr += (":"+((ISipConfig)config).getSipServerPort());
+            String sipAddr = ((ISIPConfig)config).getSipServerHost();
+            if(0 != ((ISIPConfig)config).getSipServerPort() && 5060 != ((ISIPConfig)config).getSipServerPort()){
+                sipAddr += (":"+((ISIPConfig)config).getSipServerPort());
             }
             ISession session = findSession((String) message.get(MessageProperty.SESSION_ID));
 
@@ -225,7 +222,7 @@ public class BaseCallApplication extends AbstractApplication implements
         return null;
     }
 
-    public ICallContext createIncomingCallContext(IMessage message)
+    public ICallContext createIncomingCallContext(IAlenaMessage message)
     {
         try {
             String sessionId = (String)message.get(MessageProperty.SESSION_ID);
@@ -305,12 +302,12 @@ public class BaseCallApplication extends AbstractApplication implements
         mp.setMediaContext(calls.get(callId).getMediaContext());
         points.put(mp.getPointId(), mp);
 
-        IMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
+        IAlenaMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
         message.set(MessageProperty.CLIENT_CAPABILITIES, mp.getClientCapabilities().getRawData());
         message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
         message.set(MessageProperty.POINT_ID, mp.getPointId());
         message.set(MessageProperty.PROFILE, mp.getProfile());
-        message.set(MessageProperty.SENDER, getChannel());
+        message.set(MessageProperty.SENDER, name);
         message.set(MessageProperty.SESSION_ID, sessionId);
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
 
@@ -334,12 +331,12 @@ public class BaseCallApplication extends AbstractApplication implements
         mp.setMediaContext(media);
         points.put(mp.getPointId(), mp);
 
-        IMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
+        IAlenaMessage message = new MediaMessage(MediaMessage.Type.CREATE_MEDIA_POINT);
         message.set(MessageProperty.CLIENT_CAPABILITIES, mp.getClientCapabilities().getRawData());
         message.set(MessageProperty.VOICE_VIDEO, Arrays.asList(hasVoice, hasVideo));
         message.set(MessageProperty.POINT_ID, mp.getPointId());
         message.set(MessageProperty.PROFILE, mp.getProfile());
-        message.set(MessageProperty.SENDER, getChannel());
+        message.set(MessageProperty.SENDER, name);
         message.set(MessageProperty.SESSION_ID, sessionId);
         message.set("dtmf", true);
         redisConnector.publish(media.getMcChannel(), message);
@@ -353,9 +350,9 @@ public class BaseCallApplication extends AbstractApplication implements
         if(mp == null){ return; /* skip */ }
         points.remove(pointId);
 
-        IMessage message = new MediaMessage(MediaMessage.Type.REMOVE_MEDIA_POINT);
+        IAlenaMessage message = new MediaMessage(MediaMessage.Type.REMOVE_MEDIA_POINT);
         message.set(MessageProperty.POINT_ID, pointId);
-        message.set(MessageProperty.SENDER, getChannel());
+        message.set(MessageProperty.SENDER, name);
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
     }
@@ -365,10 +362,10 @@ public class BaseCallApplication extends AbstractApplication implements
         IMediaPoint mp = findMediaPoint(pointId);
         if(mp == null){ return; /* skip */ }
 
-        IMessage message = new MediaMessage(MediaMessage.Type.JOIN_ROOM);
+        IAlenaMessage message = new MediaMessage(MediaMessage.Type.JOIN_ROOM);
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.ROOM_ID, roomId);
-        message.set(MessageProperty.SENDER, getChannel());
+        message.set(MessageProperty.SENDER, name);
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no JOIN_OK in media-controller
@@ -380,10 +377,10 @@ public class BaseCallApplication extends AbstractApplication implements
         IMediaPoint mp = findMediaPoint(pointId);
         if(mp == null){ return; /* skip */ }
 
-        IMessage message = new MediaMessage(MediaMessage.Type.UNJOIN_ROOM);
+        IAlenaMessage message = new MediaMessage(MediaMessage.Type.UNJOIN_ROOM);
         message.set(MessageProperty.POINT_ID, pointId);
         message.set(MessageProperty.ROOM_ID, roomId);
-        message.set(MessageProperty.SENDER, getChannel());
+        message.set(MessageProperty.SENDER, name);
         message.set(MessageProperty.SESSION_ID, mp.getSessionId());
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
         // TODO: This is workaround, we have no UNJOIN_OK in media-controller
@@ -407,7 +404,7 @@ public class BaseCallApplication extends AbstractApplication implements
         for (IMediaPoint item : points.values()) {
             if (item.getCallId().equals(callId)) {
                 if(item instanceof SIPMediaPoint){
-                    IMessage message = new CallMessage(CallMessage.Type.SEND_DTMF);
+                    IAlenaMessage message = new CallMessage(CallMessage.Type.SEND_DTMF);
                     message.set(MessageProperty.POINT_ID, item.getPointId());
                     message.set(MessageProperty.DTMF, dtmf);
                     redisConnector.publish(item.getMediaContext().getMcChannel(), message);
@@ -470,14 +467,14 @@ public class BaseCallApplication extends AbstractApplication implements
 
 
     @Override
-    public void onCallStarting(ICallContext ctx, IMessage message) {
+    public void onCallStarting(ICallContext ctx, IAlenaMessage message) {
         redisConnector.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_STARTING));
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_STARTING, ctx));
     }
 
     @Override
-    public void onIncomingCall(ICallContext ctx, IMessage message) {
-        IMessage message2 = message.cloneWithSameType();
+    public void onIncomingCall(ICallContext ctx, IAlenaMessage message) {
+        IAlenaMessage message2 = message.cloneWithSameType();
         message2.delete(MessageProperty.SDP);
         List<Boolean> vv = new ArrayList<Boolean>();
         vv.add(ctx.hasVoice());
@@ -487,7 +484,7 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void onCallStarted(ICallContext ctx, IMessage message) {
+    public void onCallStarted(ICallContext ctx, IAlenaMessage message) {
         redisConnector.publish(message.getClientChannel(), message.cloneWithSameType());
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_STARTED, ctx));
         // it was a SIP call? Find media point and set state
@@ -502,7 +499,7 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void onCallFinished(ICallContext ctx, IMessage message) {
+    public void onCallFinished(ICallContext ctx, IAlenaMessage message) {
         redisConnector.publish(message.getClientChannel(), message.cloneWithAnyType(CallMessage.Type.CALL_FINISHED));
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FINISHED, ctx));
         stopMedia(ctx.getCallId());
@@ -510,7 +507,7 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void onCallFailed(ICallContext ctx, IMessage message) {
+    public void onCallFailed(ICallContext ctx, IAlenaMessage message) {
         redisConnector.publish(message.getClientChannel(), message.cloneWithSameType());
         callLogger.push(new CallLogEntry(CallMessage.Type.CALL_FAILED, ctx, ""+message.get(MessageProperty.REASON)));
         stopMedia(ctx.getCallId());
@@ -528,7 +525,7 @@ public class BaseCallApplication extends AbstractApplication implements
 
 
     @Override
-    public void onSdpOffererReceived(IMediaPoint mp, IMessage message) {
+    public void onSdpOffererReceived(IMediaPoint mp, IAlenaMessage message) {
         // WRTC - send to client
         if(mp instanceof WRTCMediaPoint){
             redisConnector.publish(message.getClientChannel(), message);
@@ -537,7 +534,7 @@ public class BaseCallApplication extends AbstractApplication implements
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
-                IMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
+                IAlenaMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
                 redisConnector.publish(message.getClientChannel(), message2);
                 return;
             }
@@ -546,13 +543,13 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void onSdpAnswererReceived(IMediaPoint mp, IMessage message) {
-        message.set(MessageProperty.SENDER, getChannel());
+    public void onSdpAnswererReceived(IMediaPoint mp, IAlenaMessage message) {
+        message.set(MessageProperty.SENDER, name);
         redisConnector.publish(mp.getMediaContext().getMcChannel(), message);
     }
 
     @Override
-    public void onMediaPointCreated(IMediaPoint mp, IMessage message) {
+    public void onMediaPointCreated(IMediaPoint mp, IAlenaMessage message) {
         // TODO: now simple logic for outgoing call to SIP
         if(mp instanceof WRTCMediaPoint){
             createSIPMediaPoint(mp.getSessionId(), mp.getCallId(), mp.hasVoice(), mp.hasVideo());
@@ -561,7 +558,7 @@ public class BaseCallApplication extends AbstractApplication implements
             ICallContext ctx = findCallContext(mp.getCallId());
             if(null == ctx){
                 log.error("Call "+mp.getCallId()+" not found");
-                IMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
+                IAlenaMessage message2 = new CallMessage(CallMessage.Type.CALL_FAILED);
                 redisConnector.publish(message.getClientChannel(), message2);
                 return;
             }
@@ -574,16 +571,16 @@ public class BaseCallApplication extends AbstractApplication implements
     }
 
     @Override
-    public void onMediaPointJoinedToRoom(IMediaPoint mp, IMessage message) { }
+    public void onMediaPointJoinedToRoom(IMediaPoint mp, IAlenaMessage message) { }
 
     @Override
-    public void onMediaPointUnjoinedFromRoom(IMediaPoint mp, IMessage message) { }
+    public void onMediaPointUnjoinedFromRoom(IMediaPoint mp, IAlenaMessage message) { }
 
     @Override
-    public void onMediaFailed(IMediaPoint mp, IMessage message) {
+    public void onMediaFailed(IMediaPoint mp, IAlenaMessage message) {
         ICallContext ctx = findCallContext(mp.getCallId());
         if(null != ctx){
-            IMessage msg = new CallMessage(CallMessage.Type.CALL_FAILED);
+            IAlenaMessage msg = new CallMessage(CallMessage.Type.CALL_FAILED);
             msg.set(MessageProperty.SESSION_ID, ctx.getSessionId());
             msg.set(MessageProperty.CALL_ID, ctx.getCallId());
             msg.set(MessageProperty.REASON, "" + message.getType());

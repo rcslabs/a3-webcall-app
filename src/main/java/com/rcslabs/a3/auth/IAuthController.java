@@ -1,5 +1,7 @@
 package com.rcslabs.a3.auth;
 
+import com.rcslabs.a3.messaging.AuthMessage;
+
 public interface IAuthController {
 
     void onAuthMessage(AuthMessage message);

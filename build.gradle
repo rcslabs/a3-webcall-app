@@ -10,9 +10,10 @@ dependencies {
     compile 'commons-lang:commons-lang:2.6'
     compile 'ch.qos.logback:logback-classic:1.0.0'
     compile 'aopalliance:aopalliance:1.0'    
-    compile 'redis.clients:jedis:2.2.1'
+    compile 'redis.clients:jedis:2.6.0'
     compile 'com.google.code.gson:gson:2.2.1'
     compile 'com.rcslabs:nist-jaxb:1.0'
+    compile 'com.ykrkn:redis-client:0.0.1-SNAPSHOT'
     //compile 'com.rcslabs:rcl-api:'+version
     compile project(':libraries:java:rcl-api')
     // compile 'org.slf4j:slf4j-simple:1.6.4'

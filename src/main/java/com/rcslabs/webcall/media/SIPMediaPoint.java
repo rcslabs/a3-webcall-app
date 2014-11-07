@@ -1,6 +1,6 @@
 package com.rcslabs.webcall.media;
 
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
 import com.rcslabs.webcall.calls.ClientCapabilities;
 import org.slf4j.Logger;
@@ -17,13 +17,13 @@ public class SIPMediaPoint extends MediaPoint{
     }
 
     protected void onSdpOffererReceived(MediaSignal event){
-        IMessage msg = event.getMessage().cloneWithSameType();
+        IAlenaMessage msg = event.getMessage().cloneWithSameType();
         sdp.setOfferer((String)msg.get(MessageProperty.SDP));
         enterStateDelegate.onSdpOffererReceived(this, msg);
     }
 
     protected void onSdpAnswererReceived(MediaSignal event){
-        IMessage msg = event.getMessage().cloneWithSameType();
+        IAlenaMessage msg = event.getMessage().cloneWithSameType();
         sdp.setAnswerer((String) msg.get(MessageProperty.SDP));
         msg.set(MessageProperty.CALL_ID,  callId);
         msg.set(MessageProperty.POINT_ID, pointId);

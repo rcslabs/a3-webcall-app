@@ -1,8 +1,5 @@
 import com.rcslabs.a3.IApplication;
-import com.rcslabs.a3.IController;
-import com.rcslabs.a3.auth.AuthMessage;
-import com.rcslabs.a3.messaging.MessageMarshaller;
-import com.rcslabs.a3.messaging.RedisConnector;
+import com.rcslabs.a3.messaging.*;
 import com.rcslabs.chat.BaseChatApplication;
 import com.rcslabs.chat.ChatMessage;
 import com.rcslabs.rcl.JainSipGlobalParams;
@@ -11,8 +8,7 @@ import com.rcslabs.webcall.BaseCallApplication;
 import com.rcslabs.webcall.CallAppConfig;
 import com.rcslabs.webcall.ConstructorCallApplication;
 import com.rcslabs.webcall.ICallAppConfig;
-import com.rcslabs.webcall.calls.CallMessage;
-import com.rcslabs.webcall.media.MediaMessage;
+import com.ykrkn.redis.IMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,19 +26,13 @@ public class WebcallApp{
 
 	private final static Logger log = LoggerFactory.getLogger(WebcallApp.class);
 
-    private static RedisConnector redisConnector;
+    private RedisFactory redis;
+    private List<IApplication> apps;
 
-    private static List<IApplication> apps;
-    private static List<IController> cntrls;
-
-	void run()
-	{
+    void run() throws Exception {
         apps = new ArrayList<>();
 
         ICallAppConfig config = new CallAppConfig();
-        redisConnector = new RedisConnector();
-        redisConnector.connect(config.getRedisUri());
-        config.initWithRedis(redisConnector);
         log.info(config.toString());
 
         JainSipGlobalParams params = new JainSipGlobalParams();
@@ -57,19 +47,19 @@ public class WebcallApp{
 
         JainSipRclFactory factory = new JainSipRclFactory(params);
 
-        MessageMarshaller m = MessageMarshaller.getInstance();
-        m.registerMessageClass(AuthMessage.class);
-        m.registerMessageClass(CallMessage.class);
-        m.registerMessageClass(MediaMessage.class);
-        m.registerMessageClass(ChatMessage.class);
-        m.start();
+        redis = new RedisFactory(config.getRedisUri());
+        redis.init();
 
-        //cntrls.add();
+        JsonMessageSerializer s = new JsonMessageSerializer();
+        s.registerMessageClass(AuthMessage.class);
+        s.registerMessageClass(CallMessage.class);
+        s.registerMessageClass(MediaMessage.class);
+        s.registerMessageClass(ChatMessage.class);
+        redis.getConnector().addSerializer(s);
 
-        apps.add(new ConstructorCallApplication(redisConnector, "constructor", config, factory));
-        apps.add(new BaseCallApplication(redisConnector, "click2call", config, factory));
-        apps.add(new BaseChatApplication(redisConnector, "chat", config));
-
+        apps.add(new ConstructorCallApplication("constructor", redis.getConnector(), config, factory));
+        apps.add(new BaseCallApplication("click2call", redis.getConnector(), config, factory));
+        apps.add(new BaseChatApplication("chat", redis.getConnector(), config));
         for(IApplication a : apps){ a.init(); }
 	}
 

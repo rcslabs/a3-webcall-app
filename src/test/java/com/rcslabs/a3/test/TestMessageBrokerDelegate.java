@@ -1,7 +1,8 @@
 package com.rcslabs.a3.test;
 
-import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
+import com.rcslabs.a3.messaging.IAlenaMessage;
+import com.ykrkn.redis.IMessage;
+import com.ykrkn.redis.IMessageListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +10,11 @@ import java.util.List;
 /**
  * Created by sx on 07.05.14.
  */
-public class TestMessageBrokerDelegate implements IMessageBrokerDelegate{
+public class TestMessageBrokerDelegate implements IMessageListener {
 
     private String channel;
-    private List<IMessage> messages;
-    public List<IMessage> getMessages() {
+    private List<IAlenaMessage> messages;
+    public List<IAlenaMessage> getMessages() {
         return messages;
     }
 
@@ -27,17 +28,7 @@ public class TestMessageBrokerDelegate implements IMessageBrokerDelegate{
     }
 
     @Override
-    public String getChannel() {
-        return channel;
-    }
-
-    @Override
-    public void onMessageReceived(IMessage message) {
-        messages.add(message);
-    }
-
-    @Override
-    public void handleOnMessageException(IMessage message, Throwable e) {
-
+    public void onMessage(String channel, IMessage message) {
+        messages.add((IAlenaMessage) message);
     }
 }

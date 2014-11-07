@@ -1,11 +1,11 @@
 package com.rcslabs.a3.rtc;
 
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 
 public interface ICallContextDelegate {
-    void onCallStarting(ICallContext ctx, IMessage message);
-    void onIncomingCall(ICallContext ctx, IMessage message);
-    void onCallStarted(ICallContext ctx, IMessage message);
-    void onCallFinished(ICallContext ctx, IMessage message);
-    void onCallFailed(ICallContext ctx, IMessage message);
+    void onCallStarting(ICallContext ctx, IAlenaMessage message);
+    void onIncomingCall(ICallContext ctx, IAlenaMessage message);
+    void onCallStarted(ICallContext ctx, IAlenaMessage message);
+    void onCallFinished(ICallContext ctx, IAlenaMessage message);
+    void onCallFailed(ICallContext ctx, IAlenaMessage message);
 }

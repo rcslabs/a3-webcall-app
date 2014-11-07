@@ -2,10 +2,10 @@ package com.rcslabs.chat;
 
 import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.auth.AbstractAuthController;
-import com.rcslabs.a3.auth.AuthMessage;
+import com.rcslabs.a3.messaging.AuthMessage;
 import com.rcslabs.a3.auth.ISession;
-import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.webcall.ICallAppConfig;
+import com.ykrkn.redis.RedisConnector;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -23,8 +23,8 @@ public class ChatAuthController extends AbstractAuthController {
 
     private static String API_AUTH_CHECK ;//= "http://test-ru.luxmsbi.com/bi-fe-server/api/auth/check";
 
-    public ChatAuthController(RedisConnector broker, ICallAppConfig config, IDataStorage<ISession> storage) {
-        super("auth:chat", broker, storage);
+    public ChatAuthController(RedisConnector redisConnector, ICallAppConfig config, IDataStorage<ISession> storage) {
+        super("auth:chat", redisConnector, storage);
         API_AUTH_CHECK = config.getApiAuthCheckUrl();
     }
 

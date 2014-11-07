@@ -1,13 +1,15 @@
 package com.rcslabs.a3.test;
 
-import com.rcslabs.a3.auth.AuthMessage;
-import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.MessageMarshaller;
-import com.rcslabs.a3.messaging.RedisConnector;
+import com.rcslabs.a3.messaging.AuthMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
+import com.rcslabs.a3.messaging.JsonMessageSerializer;
 import com.rcslabs.chat.ChatMessage;
-import com.rcslabs.webcall.calls.CallMessage;
-import com.rcslabs.webcall.media.MediaMessage;
+import com.rcslabs.a3.messaging.CallMessage;
+import com.rcslabs.a3.messaging.MediaMessage;
+import com.ykrkn.redis.RedisConnector;
 import org.junit.*;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Protocol;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -21,52 +23,52 @@ import java.util.List;
 @Ignore
 public class MessagingTest {
 
-    private static RedisConnector redisConnector;
-
-    private static TestMessageBrokerDelegate subscriber;
-
+    private JedisPool pool;
+    private RedisConnector redisConnector;
+    private TestMessageBrokerDelegate subscriber;
     private static final String REDIS_URI = "redis://192.168.1.200";
     private static final String CHANNEL = "test";
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        redisConnector = new RedisConnector();
-        redisConnector.connect(new URI(REDIS_URI));
-        subscriber = new TestMessageBrokerDelegate(CHANNEL);
-        redisConnector.subscribe(subscriber);
-
-        MessageMarshaller m = MessageMarshaller.getInstance();
-        m.registerMessageClass(AuthMessage.class);
-        m.registerMessageClass(CallMessage.class);
-        m.registerMessageClass(MediaMessage.class);
-        m.registerMessageClass(ChatMessage.class);
-        m.start();
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        redisConnector.unubscribe(subscriber);
-    }
-
     @Before
-    public void setUp(){
-        subscriber.clean();
+    public void setUp() throws Exception {
+        URI uri = new URI(REDIS_URI);
+        pool = new JedisPool(uri.getHost(), (-1 == uri.getPort() ? Protocol.DEFAULT_PORT : uri.getPort()));
+        redisConnector = new RedisConnector(pool);
+        JsonMessageSerializer s = new JsonMessageSerializer();
+        s.registerMessageClass(AuthMessage.class);
+        s.registerMessageClass(CallMessage.class);
+        s.registerMessageClass(MediaMessage.class);
+        s.registerMessageClass(ChatMessage.class);
+        redisConnector.addSerializer(s);
+        redisConnector.subscribe();
+
+        subscriber = new TestMessageBrokerDelegate(CHANNEL);
+        redisConnector.addMessageListener(CHANNEL, subscriber);
+        Thread.sleep(1111);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        redisConnector.dispose();
+        redisConnector = null;
+        pool.destroy();
+        pool = null;
     }
 
     @Test
     public void testCloneMessage(){
-        IMessage m1 = new AuthMessage(AuthMessage.Type.START_SESSION);
+        IAlenaMessage m1 = new AuthMessage(AuthMessage.Type.START_SESSION);
         m1.set("username", "A");
         m1.set("password", "B");
 
-        IMessage m2 = m1.cloneWithSameType();
+        IAlenaMessage m2 = m1.cloneWithSameType();
         Assert.assertNotSame(m1, m2);
         Assert.assertEquals(m1.getTypz(), m2.getTypz());
         Assert.assertEquals(m1.getType(), m2.getType());
         Assert.assertEquals(m1.get("username"), m2.get("username"));
         Assert.assertEquals(m1.get("password"), m2.get("password"));
 
-        IMessage m3 = m2.cloneWithAnyType(CallMessage.Type.START_CALL);
+        IAlenaMessage m3 = m2.cloneWithAnyType(CallMessage.Type.START_CALL);
         Assert.assertEquals(m3.getTypz(), "CallMessage");
         Assert.assertEquals(m3.getType(), CallMessage.Type.START_CALL);
         Assert.assertEquals(m1.get("username"), m3.get("username"));
@@ -100,10 +102,10 @@ public class MessagingTest {
             List types = getMessageClassTypesAsEnum(clazz);
             Assert.assertTrue(0 != types.size());
             testPublishAllTypesOfMessage(clazz);
-            Thread.sleep(1000);
-            List<IMessage> resultList = subscriber.getMessages();
-            Assert.assertEquals(resultList.size(), types.size());
-            for(IMessage m : resultList){
+            Thread.sleep(1111);
+            List<IAlenaMessage> resultList = subscriber.getMessages();
+            Assert.assertEquals(types.size(), resultList.size());
+            for(IAlenaMessage m : resultList){
                 Assert.assertEquals(m.getTypz(), typeOfClass);
                 Assert.assertEquals(m.getClass(), clazz);
             }
@@ -118,7 +120,7 @@ public class MessagingTest {
             List<?> classTypesEnum = getMessageClassTypesAsEnum(clazz);
             for(Object t : classTypesEnum){
                 Constructor<?> cnst = clazz.getConstructor(t.getClass());
-                IMessage aMessage = (IMessage)cnst.newInstance(t);
+                IAlenaMessage aMessage = (IAlenaMessage)cnst.newInstance(t);
                 redisConnector.publish(CHANNEL, aMessage);
             }
         } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e){

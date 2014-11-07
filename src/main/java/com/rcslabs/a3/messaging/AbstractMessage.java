@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
+public abstract class AbstractMessage<T extends Enum> implements IAlenaMessage<T> {
 
     protected final static Logger log = LoggerFactory.getLogger(AbstractMessage.class);
 
@@ -88,13 +88,13 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
 		return s; 
 	}
 
-	public IMessage cloneWithSameType(){
+	public IAlenaMessage cloneWithSameType(){
 		return cloneWithAnyType(type);
 	}
 
     private static final Map<String, Constructor<?>> reflectionCache = new ConcurrentHashMap<String, Constructor<?>>();
 
-	public IMessage cloneWithAnyType(T type){
+	public IAlenaMessage cloneWithAnyType(T type){
         try {
             String typeName = type.getClass().getName();
             Constructor<?> cnst = null;
@@ -108,7 +108,7 @@ public abstract class AbstractMessage<T extends Enum> implements IMessage<T> {
                 reflectionCache.put(typeName, cnst);
             }
 
-            IMessage aMessage = (IMessage)cnst.newInstance(type);
+            IAlenaMessage aMessage = (IAlenaMessage)cnst.newInstance(type);
             for(String key : data.keySet()){
                 aMessage.set(key, data.get(key));
             }

@@ -2,6 +2,7 @@ package com.rcslabs.webcall.media;
 
 import com.rcslabs.a3.IApplication;
 import com.rcslabs.a3.fsm.AbstractFSM;
+import com.rcslabs.a3.messaging.MediaMessage;
 import com.rcslabs.a3.rtc.IMediaContext;
 import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.a3.rtc.IMediaPointDelegate;

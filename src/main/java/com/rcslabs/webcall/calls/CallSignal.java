@@ -1,19 +1,20 @@
 package com.rcslabs.webcall.calls;
 
 import com.rcslabs.a3.fsm.IFSMSignal;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.CallMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 
 public class CallSignal implements IFSMSignal<CallMessage.Type> {
 
     private CallMessage.Type type;
 
-    private IMessage originalMessage;
+    private IAlenaMessage originalMessage;
 
     public CallMessage.Type getType(){
         return type;
     }
 
-    public IMessage getMessage(){
+    public IAlenaMessage getMessage(){
         return originalMessage;
     }
 

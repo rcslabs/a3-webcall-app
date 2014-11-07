@@ -2,7 +2,7 @@ package com.rcslabs.a3.auth;
 
 
 import com.rcslabs.a3.fsm.AbstractFSM;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
 
 import java.util.Collection;
@@ -14,7 +14,7 @@ public class CriticalFailedSession extends AbstractFSM<ISession.State, SessionSi
     private final String clientId;
     private final String sessionId;
 
-    public CriticalFailedSession(IMessage message) {
+    public CriticalFailedSession(IAlenaMessage message) {
         service = (String)message.get(MessageProperty.SERVICE);
         sender = (String)message.get(MessageProperty.SENDER);
         clientId = (String)message.get(MessageProperty.CLIENT_ID);

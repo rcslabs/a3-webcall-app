@@ -2,10 +2,9 @@ package com.rcslabs.webcall;
 
 import com.rcslabs.a3.InMemoryDataStorage;
 import com.rcslabs.a3.auth.*;
-import com.rcslabs.a3.messaging.IMessage;
-import com.rcslabs.a3.messaging.IMessageBrokerDelegate;
+import com.rcslabs.a3.messaging.AuthMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
-import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.rcl.JainSipCall;
 import com.rcslabs.rcl.core.IConnection;
 import com.rcslabs.rcl.core.IConnectionListener;
@@ -18,16 +17,17 @@ import com.rcslabs.rcl.telephony.ITelephonyService;
 import com.rcslabs.rcl.telephony.ITelephonyServiceListener;
 import com.rcslabs.rcl.telephony.entity.ICallParams;
 import com.rcslabs.rcl.telephony.event.ITelephonyEvent;
-import com.rcslabs.webcall.calls.CallMessage;
+import com.rcslabs.a3.messaging.CallMessage;
+import com.ykrkn.redis.RedisConnector;
 
 public class SipAuthController extends AbstractAuthController
-        implements IConnectionListener, IMessageBrokerDelegate, ITelephonyServiceListener {
+        implements IConnectionListener, ITelephonyServiceListener {
 
 	protected ICallAppConfig config;
     protected IRclFactory factory;
 
-	public SipAuthController(String channel, ICallAppConfig config, RedisConnector broker, IRclFactory factory) {
-		super(channel, broker, new InMemoryDataStorage<ISession>());
+	public SipAuthController(RedisConnector redisConnector, String name, ICallAppConfig config, IRclFactory factory) {
+		super(name, redisConnector, new InMemoryDataStorage<ISession>());
         this.config = config;
         this.factory = factory;
 	}
@@ -204,7 +204,7 @@ public class SipAuthController extends AbstractAuthController
         if(null == session){
             log.error("Session " + sessionId + " not found");
         } else {
-            IMessage message = new CallMessage(CallMessage.Type.INCOMING_CALL);
+            IAlenaMessage message = new CallMessage(CallMessage.Type.INCOMING_CALL);
             message.set(MessageProperty.SERVICE, session.getService());
             message.set(MessageProperty.SESSION_ID, sessionId);
             message.set(MessageProperty.CALL_ID, call.getId());

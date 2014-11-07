@@ -5,10 +5,12 @@ import com.rcslabs.a3.IDataStorage;
 import com.rcslabs.a3.InMemoryDataStorage;
 import com.rcslabs.a3.auth.*;
 import com.rcslabs.a3.exception.InvalidMessageException;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.AuthMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
-import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.webcall.ICallAppConfig;
+import com.ykrkn.redis.IMessage;
+import com.ykrkn.redis.RedisConnector;
 
 /**
  * Created by sx on 22.04.14.
@@ -22,8 +24,8 @@ public class BaseChatApplication extends AbstractApplication implements IChatApp
     private final String ENTER_ROOM = "ENTER_ROOM";
     private final String LEAVE_ROOM = "LEAVE_ROOM";
 
-    public BaseChatApplication(RedisConnector redisConnector, String channelName, ICallAppConfig config) {
-        super(redisConnector, channelName, null);
+    public BaseChatApplication(String name, RedisConnector redisConnector, ICallAppConfig config) {
+        super(name, redisConnector, null);
 
         this.rooms = new InMemoryDataStorage<>();
         this.messages = new InMemoryDataStorage<>();
@@ -36,32 +38,33 @@ public class BaseChatApplication extends AbstractApplication implements IChatApp
     }
 
     @Override
-    public void beforeStartSession(IMessage message) throws Exception {}
+    public void beforeStartSession(IAlenaMessage message) throws Exception {}
 
     @Override
-    public void onMessageReceived(IMessage message)
+    public void onMessage(String channel, IMessage message)
     {
         try {
             // all messages except START_SESSION must contains parameter "sessionId"
             // validate it and throws an Exception unsuccessfully
-            if(!message.has(MessageProperty.SESSION_ID)){
-                if(message.getType() != AuthMessage.Type.START_SESSION){
+            IAlenaMessage _message = (IAlenaMessage)message;
+            if(!_message.has(MessageProperty.SESSION_ID)){
+                if(_message.getType() != AuthMessage.Type.START_SESSION){
                     throw new InvalidMessageException("Skip the message without sessionId " + message);
                 }
             } else {
-                String sessionId = (String)message.get(MessageProperty.SESSION_ID);
+                String sessionId = (String)_message.get(MessageProperty.SESSION_ID);
                 ISession session = authController.findSession(sessionId);
                 if(null == session){
                     log.warn("Session for message not found " + message);
                 }
             }
 
-            if(message.getType() instanceof AuthMessage.Type)
+            if(_message.getType() instanceof AuthMessage.Type)
                 handleAuthMessage((AuthMessage) message);
-            else if(message.getType() instanceof ChatMessage.Type)
+            else if(_message.getType() instanceof ChatMessage.Type)
                 handleChatMessage((ChatMessage) message);
             else
-                log.warn("Unhandled message " + message.getType());
+                log.warn("Unhandled message " + _message.getType());
         } catch (Exception e) {
             handleOnMessageException(message, e);
         }
@@ -69,9 +72,9 @@ public class BaseChatApplication extends AbstractApplication implements IChatApp
 
     @Override
     public void handleOnMessageException(IMessage message, Throwable e) {
-        log.error(e.getMessage(), e);
-        if(message.getType() == AuthMessage.Type.START_SESSION){
-            authController.onSessionFailed(new CriticalFailedSession(message), "Critical error");
+        super.handleOnMessageException(message, e);
+        if(((IAlenaMessage)message).getType() == AuthMessage.Type.START_SESSION){
+            authController.onSessionFailed(new CriticalFailedSession((IAlenaMessage)message), "Critical error");
         }
     }
 

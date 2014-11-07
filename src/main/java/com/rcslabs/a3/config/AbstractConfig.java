@@ -1,6 +1,5 @@
 package com.rcslabs.a3.config;
 
-import com.rcslabs.a3.messaging.RedisConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +16,6 @@ public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
     private ArgsConfigChainHandler argsHandler;
     private FileConfigChainHandler fileHandler;
     private DefaultsConfigChainHandler defaultsHandler;
-    private RedisConfigChainHandler redisHandler;
 
     protected AbstractConfig(){
         log = LoggerFactory.getLogger(getClass());
@@ -44,14 +42,6 @@ public abstract class AbstractConfig implements IConfigChainHandler, IConfig {
         fileHandler.setNext(defaultsHandler);
         this.firstHandler = argsHandler;
 	}
-
-    public void initWithRedis(RedisConnector redisConnector){
-        redisHandler = new RedisConfigChainHandler(redisConnector);
-        // create chain again :)
-        argsHandler.setNext(redisHandler);
-        redisHandler.setNext(fileHandler);
-        fileHandler.setNext(defaultsHandler);
-    }
 
     @Override
     public void setNext(IConfigChainHandler next) {

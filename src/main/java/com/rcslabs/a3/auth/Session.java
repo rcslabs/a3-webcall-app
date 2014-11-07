@@ -1,6 +1,7 @@
 package com.rcslabs.a3.auth;
 
 import com.rcslabs.a3.fsm.AbstractFSM;
+import com.rcslabs.a3.messaging.AuthMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
 
 import java.util.Collection;

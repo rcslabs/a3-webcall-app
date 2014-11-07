@@ -1,7 +1,8 @@
 package com.rcslabs.a3;
 
 import com.rcslabs.a3.config.IConfig;
-import com.rcslabs.a3.messaging.RedisConnector;
+import com.rcslabs.a3.exception.ComponentLifecycleException;
+import com.ykrkn.redis.RedisConnector;
 
 /**
  * Created by sx on 12.05.14.
@@ -9,10 +10,19 @@ import com.rcslabs.a3.messaging.RedisConnector;
 public abstract class AbstractApplication extends AbstractComponent implements IApplication {
 
     protected final IConfig config;
+    protected final RedisConnector redisConnector;
 
-    protected AbstractApplication(RedisConnector redisConnector, String channelName, IConfig config) {
-        super(redisConnector, channelName);
+    protected AbstractApplication(String name, RedisConnector redisConnector, IConfig config) {
+        super(name);
         this.config = config;
+        this.redisConnector = redisConnector;
+    }
+
+    @Override
+    public void init() throws ComponentLifecycleException
+    {
+        super.init();
+        redisConnector.addMessageListener(name, this);
     }
 
     @Override

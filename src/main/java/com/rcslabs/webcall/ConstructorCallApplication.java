@@ -1,15 +1,15 @@
 package com.rcslabs.webcall;
 
 import com.rcslabs.a3.config.IDatabaseConfig;
-import com.rcslabs.a3.config.ISipConfig;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.config.ISIPConfig;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.messaging.MessageProperty;
-import com.rcslabs.a3.messaging.RedisConnector;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.rcl.core.IRclFactory;
 import com.rcslabs.rcl.telephony.entity.CallParameterSipHeader;
 import com.rcslabs.webcall.calls.CallContext;
-import com.rcslabs.webcall.calls.CallMessage;
+import com.rcslabs.a3.messaging.CallMessage;
+import com.ykrkn.redis.RedisConnector;
 import org.apache.commons.lang.StringUtils;
 
 import java.sql.*;
@@ -35,9 +35,9 @@ public class ConstructorCallApplication extends BaseCallApplication {
     private final String DURATION_NOTIFICATION_SIPMSG = "durationNotificationSipmessage";
     private final String OPERATOR_ID_PROPERTY = "operatorId";
 
-    public ConstructorCallApplication(RedisConnector redisConnector, String channelName, ICallAppConfig config, IRclFactory factory)
+    public ConstructorCallApplication(String name, RedisConnector redisConnector, ICallAppConfig config, IRclFactory factory)
     {
-        super(redisConnector, channelName, config, factory);
+        super(name, redisConnector, config, factory);
 
         try {
             Class.forName("org.postgresql.Driver");
@@ -56,7 +56,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
     }
 
     @Override
-    public void beforeStartSession(IMessage message) throws Exception
+    public void beforeStartSession(IAlenaMessage message) throws Exception
     {
         String projectId = (String)message.get(MessageProperty.PROJECT_ID);
         Map<String, String> props = resolveButtonProperties(projectId);
@@ -65,7 +65,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
     }
 
     @Override
-    public ICallContext createCallContext(IMessage message)
+    public ICallContext createCallContext(IAlenaMessage message)
     {
         ICallContext ctx;
         try {
@@ -74,7 +74,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
             List<Object> vv = (List<Object>) message.get(MessageProperty.VOICE_VIDEO);
             String bUri = props.get((Boolean) vv.get(1) ? SIP_VIDEO_PHONE_NUMBER : SIP_VOICE_PHONE_NUMBER);
             if(-1 == bUri.indexOf('@')){
-                bUri += "@"+((ISipConfig)config).getSipServerHost()+":"+((ISipConfig)config).getSipServerPort();
+                bUri += "@"+((ISIPConfig)config).getSipServerHost()+":"+((ISIPConfig)config).getSipServerPort();
             }
             message.set(MessageProperty.B_URI, bUri);
 
@@ -108,7 +108,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
     }
 
     @Override
-    public void onCallStarted(ICallContext ctx, IMessage message)
+    public void onCallStarted(ICallContext ctx, IAlenaMessage message)
     {
         super.onCallStarted(ctx, message);
 
@@ -185,10 +185,10 @@ public class ConstructorCallApplication extends BaseCallApplication {
         @Override
         public void run() {
             log.info("Finishing call {} by timer", ctx.getSipId());
-            IMessage message = new CallMessage(CallMessage.Type.HANGUP_CALL);
+            IAlenaMessage message = new CallMessage(CallMessage.Type.HANGUP_CALL);
             message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
             message.set(MessageProperty.CALL_ID, ctx.getCallId());
-            redisConnector.publish(channelName, message);
+            redisConnector.publish(name, message);
         }
     }
 
@@ -205,7 +205,7 @@ public class ConstructorCallApplication extends BaseCallApplication {
         @Override
         public void run() {
             log.info("Notification call {} by timer", ctx.getSipId());
-            IMessage message = new CallMessage(CallMessage.Type.CALL_FINISH_NOTIFICATION);
+            IAlenaMessage message = new CallMessage(CallMessage.Type.CALL_FINISH_NOTIFICATION);
             message.set(MessageProperty.SESSION_ID, ctx.getSessionId());
             message.set(MessageProperty.CALL_ID, ctx.getCallId());
             message.set(MessageProperty.TIME_BEFORE_FINISH, timeBeforeFinish);

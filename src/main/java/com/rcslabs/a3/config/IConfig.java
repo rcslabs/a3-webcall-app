@@ -1,7 +1,5 @@
 package com.rcslabs.a3.config;
 
-import com.rcslabs.a3.messaging.RedisConnector;
-
 import java.net.URI;
 
 /**
@@ -9,5 +7,5 @@ import java.net.URI;
  */
 public interface IConfig {
     public URI getRedisUri();
-    public void initWithRedis(RedisConnector redisConnector);
+//    public void initWithRedis(RedisConnector redisConnector);
 }
