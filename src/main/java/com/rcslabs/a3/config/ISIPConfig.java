@@ -3,7 +3,7 @@ package com.rcslabs.a3.config;
 /**
  * Created by sx on 22.04.14.
  */
-public interface ISipConfig {
+public interface ISIPConfig {
     public abstract String getSipLocalHost();
     public abstract Integer getSipLocalPort();
     public abstract String getSipServerHost();

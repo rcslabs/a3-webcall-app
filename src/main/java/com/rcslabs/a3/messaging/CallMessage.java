@@ -1,6 +1,4 @@
-package com.rcslabs.webcall.calls;
-
-import com.rcslabs.a3.messaging.AbstractMessage;
+package com.rcslabs.a3.messaging;
 
 /**
  * Created by sx on 15.04.14.

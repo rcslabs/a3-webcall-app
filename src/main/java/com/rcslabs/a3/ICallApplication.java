@@ -1,7 +1,6 @@
-package com.rcslabs.webcall;
+package com.rcslabs.a3;
 
-import com.rcslabs.a3.IApplication;
-import com.rcslabs.a3.messaging.IMessage;
+import com.rcslabs.a3.messaging.IAlenaMessage;
 import com.rcslabs.a3.rtc.ICallContext;
 import com.rcslabs.a3.rtc.IMediaPoint;
 import com.rcslabs.webcall.calls.ClientCapabilities;
@@ -10,7 +9,7 @@ import java.util.List;
 
 public interface ICallApplication extends IApplication {
 
-    ICallContext createCallContext(IMessage message);
+    ICallContext createCallContext(IAlenaMessage message);
 
     ICallContext findCallContext(String callId);
 
