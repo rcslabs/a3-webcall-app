@@ -42,7 +42,7 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            uniqueVersion = false
+            //uniqueVersion = false
             from components.java
             pom.withXml {
                 asNode().appendNode('description', 
